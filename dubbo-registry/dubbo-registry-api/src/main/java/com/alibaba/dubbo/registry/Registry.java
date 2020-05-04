@@ -20,6 +20,7 @@ import com.alibaba.dubbo.common.Node;
 
 /**
  * Registry. (SPI, Prototype, ThreadSafe)
+ * 对RegistryService的集成
  *
  * @see com.alibaba.dubbo.registry.RegistryFactory#getRegistry(com.alibaba.dubbo.common.URL)
  * @see com.alibaba.dubbo.registry.support.AbstractRegistry

@@ -22,6 +22,7 @@ import com.alibaba.dubbo.common.extension.SPI;
 
 /**
  * RegistryFactory. (SPI, Singleton, ThreadSafe)
+ * 用于生成注册中心
  *
  * @see com.alibaba.dubbo.registry.support.AbstractRegistryFactory
  */
@@ -38,6 +39,9 @@ public interface RegistryFactory {
      * 4. Support file=registry.cache local disk file cache.<br>
      * 5. Support the timeout=1000 request timeout setting.<br>
      * 6. Support session=60000 session timeout or expiration settings.<br>
+     * <p>
+     * <p>
+     * 根据不同的protocol选择不同的注册中心
      *
      * @param url Registry address, is not allowed to be empty
      * @return Registry reference, never return empty value

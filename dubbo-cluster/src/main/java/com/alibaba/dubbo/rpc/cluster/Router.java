@@ -31,7 +31,7 @@ import java.util.List;
  * @see com.alibaba.dubbo.rpc.cluster.Cluster#join(Directory)
  * @see com.alibaba.dubbo.rpc.cluster.Directory#list(Invocation)
  */
-public interface Router extends Comparable<Router>{
+public interface Router extends Comparable<Router> {
 
     /**
      * get the router url.

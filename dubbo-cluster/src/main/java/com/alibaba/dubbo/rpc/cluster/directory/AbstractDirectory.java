@@ -36,7 +36,6 @@ import java.util.List;
 
 /**
  * Abstract implementation of Directory: Invoker list returned from this Directory's list method have been filtered by Routers
- *
  */
 public abstract class AbstractDirectory<T> implements Directory<T> {
 
@@ -78,7 +77,7 @@ public abstract class AbstractDirectory<T> implements Directory<T> {
             for (Router router : localRouters) {
                 try {
                     if (router.getUrl() == null || router.getUrl().getParameter(Constants.RUNTIME_KEY, false)) {
-                        invokers = router.route(invokers, getConsumerUrl(), invocation);
+                        invokers = router.route(invokers, getConsumerUrl(), invocation);    // 获取所有的Invoker
                     }
                 } catch (Throwable t) {
                     logger.error("Failed to execute router: " + getUrl() + ", cause: " + t.getMessage(), t);

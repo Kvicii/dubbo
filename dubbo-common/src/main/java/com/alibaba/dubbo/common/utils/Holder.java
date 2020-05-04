@@ -18,6 +18,7 @@ package com.alibaba.dubbo.common.utils;
 
 /**
  * Helper Class for hold a value.
+ * 持有了一个对象的Holder对象
  */
 public class Holder<T> {
 

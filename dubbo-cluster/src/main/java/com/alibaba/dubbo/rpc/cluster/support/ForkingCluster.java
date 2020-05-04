@@ -23,7 +23,7 @@ import com.alibaba.dubbo.rpc.cluster.Directory;
 
 /**
  * {@link ForkingClusterInvoker}
- *
+ * 并行调用多个服务提供者 又一个返回结果就立即返回
  */
 public class ForkingCluster implements Cluster {
 

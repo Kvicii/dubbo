@@ -51,7 +51,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * AbstractRegistry. (SPI, Prototype, ThreadSafe)
- *
+ * 对注册中心的封装 主要会对本地注册地址的进行封装 主要作用在于远程注册中心不可用时 可以使用本地的注册中心
  */
 public abstract class AbstractRegistry implements Registry {
 
@@ -79,9 +79,10 @@ public abstract class AbstractRegistry implements Registry {
         setUrl(url);
         // Start file save timer
         syncSaveFile = url.getParameter(Constants.REGISTRY_FILESAVE_SYNC_KEY, false);
+        // 默认保存路径(home/.dubbo/dubbo-registry-appName-address-port.cache)
         String filename = url.getParameter(Constants.FILE_KEY, System.getProperty("user.home") + "/.dubbo/dubbo-registry-" + url.getParameter(Constants.APPLICATION_KEY) + "-" + url.getAddress() + ".cache");
         File file = null;
-        if (ConfigUtils.isNotEmpty(filename)) {
+        if (ConfigUtils.isNotEmpty(filename)) { // 不存在进行创建
             file = new File(filename);
             if (!file.exists() && file.getParentFile() != null && !file.getParentFile().exists()) {
                 if (!file.getParentFile().mkdirs()) {
@@ -90,8 +91,8 @@ public abstract class AbstractRegistry implements Registry {
             }
         }
         this.file = file;
-        loadProperties();
-        notify(url.getBackupUrls());
+        loadProperties();   // 从本地加载路由信息
+        notify(url.getBackupUrls());    // 调用notify缓存路由等相关配置信息到本地 在调用过程中会优先从注册中心查找 注册中心故障后再从本地路由查找
     }
 
     protected static List<URL> filterEmpty(URL url, List<URL> urls) {
@@ -148,6 +149,7 @@ public abstract class AbstractRegistry implements Registry {
         }
         // Save
         try {
+            // 使用文件级别的锁保证同一时间只有一个线程进行操作
             File lockfile = new File(file.getAbsolutePath() + ".lock");
             if (!lockfile.exists()) {
                 lockfile.createNewFile();
@@ -156,7 +158,7 @@ public abstract class AbstractRegistry implements Registry {
             try {
                 FileChannel channel = raf.getChannel();
                 try {
-                    FileLock lock = channel.tryLock();
+                    FileLock lock = channel.tryLock();  // 再次使用文件锁保证并发时只有一个线程进行操作 可能存在跨JVM的情况
                     if (lock == null) {
                         throw new IOException("Can not lock the registry cache file " + file.getAbsolutePath() + ", ignore and retry later, maybe multi java process use the file, please config: dubbo.registry.file=xxx.properties");
                     }
@@ -167,12 +169,12 @@ public abstract class AbstractRegistry implements Registry {
                         }
                         FileOutputStream outputFile = new FileOutputStream(file);
                         try {
-                            properties.store(outputFile, "Dubbo Registry Cache");
+                            properties.store(outputFile, "Dubbo Registry Cache");   // 配置信息持久化到文件
                         } finally {
                             outputFile.close();
                         }
                     } finally {
-                        lock.release();
+                        lock.release(); // 释放文件锁
                     }
                 } finally {
                     channel.close();
@@ -184,7 +186,7 @@ public abstract class AbstractRegistry implements Registry {
             if (version < lastCacheChanged.get()) {
                 return;
             } else {
-                registryCacheExecutor.execute(new SaveProperties(lastCacheChanged.incrementAndGet()));
+                registryCacheExecutor.execute(new SaveProperties(lastCacheChanged.incrementAndGet()));  // 执行出错交给专门的线程处理
             }
             logger.warn("Failed to save registry store file, cause: " + e.getMessage(), e);
         }
@@ -410,7 +412,7 @@ public abstract class AbstractRegistry implements Registry {
             String category = entry.getKey();
             List<URL> categoryList = entry.getValue();
             categoryNotified.put(category, categoryList);
-            saveProperties(url);
+            saveProperties(url);    // 缓存路由等相关配置信息
             listener.notify(categoryList);
         }
     }
@@ -422,22 +424,22 @@ public abstract class AbstractRegistry implements Registry {
 
         try {
             StringBuilder buf = new StringBuilder();
-            Map<String, List<URL>> categoryNotified = notified.get(url);
+            Map<String, List<URL>> categoryNotified = notified.get(url);    // 获取所有通知到的地址
             if (categoryNotified != null) {
                 for (List<URL> us : categoryNotified.values()) {
                     for (URL u : us) {
                         if (buf.length() > 0) {
                             buf.append(URL_SEPARATOR);
                         }
-                        buf.append(u.toFullString());
+                        buf.append(u.toFullString());   // 地址拼接
                     }
                 }
             }
             properties.setProperty(url.getServiceKey(), buf.toString());
-            long version = lastCacheChanged.incrementAndGet();
-            if (syncSaveFile) {
+            long version = lastCacheChanged.incrementAndGet();  // 记录一个版本号 通过这种机制可以保证后面保存的记录在重试的时候 不会重试之前的版本
+            if (syncSaveFile) { // 同步保存
                 doSaveProperties(version);
-            } else {
+            } else {    // 异步存储
                 registryCacheExecutor.execute(new SaveProperties(version));
             }
         } catch (Throwable t) {

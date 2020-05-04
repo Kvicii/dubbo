@@ -39,6 +39,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * FailbackRegistry. (SPI, Prototype, ThreadSafe)
  *
+ * 请求失败自动恢复 后台记录失败请求 定时重发
  */
 public abstract class FailbackRegistry extends AbstractRegistry {
 
@@ -129,12 +130,13 @@ public abstract class FailbackRegistry extends AbstractRegistry {
 
     @Override
     public void register(URL url) {
-        super.register(url);
+        super.register(url);    // 保存已经注册的地址列表
+        // 将一些错误的信息删除 确保当前地址可以在出现一些错误的地址时可以被删除
         failedRegistered.remove(url);
         failedUnregistered.remove(url);
         try {
             // Sending a registration request to the server side
-            doRegister(url);
+            doRegister(url);    // 调用FailbackRegistry的具体实现进行注册
         } catch (Exception e) {
             Throwable t = e;
 
@@ -153,6 +155,7 @@ public abstract class FailbackRegistry extends AbstractRegistry {
             }
 
             // Record a failed registration request to a failed list, retry regularly
+            // 加入失败列表 后台进行异步重试
             failedRegistered.add(url);
         }
     }

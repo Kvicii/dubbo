@@ -23,7 +23,7 @@ import com.alibaba.dubbo.rpc.cluster.Directory;
 
 /**
  * {@link FailbackClusterInvoker}
- *
+ * 请求失败后 将请求放入失败队列重试
  */
 public class FailbackCluster implements Cluster {
 
