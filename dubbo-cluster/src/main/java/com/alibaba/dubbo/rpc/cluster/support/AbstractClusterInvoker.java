@@ -226,22 +226,23 @@ public abstract class AbstractClusterInvoker<T> implements Invoker<T> {
 
     @Override
     public Result invoke(final Invocation invocation) throws RpcException {
-        checkWhetherDestroyed();
+        checkWhetherDestroyed();    // 检查是否已经关闭
         LoadBalance loadbalance = null;
 
         // binding attachments into invocation.
+        // 拷贝RpcContext中的信息到当前的Invocation中
         Map<String, String> contextAttachments = RpcContext.getContext().getAttachments();
         if (contextAttachments != null && contextAttachments.size() != 0) {
             ((RpcInvocation) invocation).addAttachments(contextAttachments);
         }
-
+        // 找出所有支持的Invoker 这里的Invoker已经经过路由处理
         List<Invoker<T>> invokers = list(invocation);
-        if (invokers != null && !invokers.isEmpty()) {
+        if (invokers != null && !invokers.isEmpty()) {  // 初始化负载均衡器
             loadbalance = ExtensionLoader.getExtensionLoader(LoadBalance.class).getExtension(invokers.get(0).getUrl()
                     .getMethodParameter(RpcUtils.getMethodName(invocation), Constants.LOADBALANCE_KEY, Constants.DEFAULT_LOADBALANCE));
         }
-        RpcUtils.attachInvocationIdIfAsync(getUrl(), invocation);
-        return doInvoke(invocation, invokers, loadbalance);
+        RpcUtils.attachInvocationIdIfAsync(getUrl(), invocation);   // 适配异步请求使用
+        return doInvoke(invocation, invokers, loadbalance); // 交由子类处理
     }
 
     protected void checkWhetherDestroyed() {

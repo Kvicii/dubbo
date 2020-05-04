@@ -41,6 +41,7 @@ import java.util.regex.Pattern;
 
 /**
  * ConditionRouter
+ * 条件路由
  */
 public class ConditionRouter extends AbstractRouter {
 
@@ -48,7 +49,9 @@ public class ConditionRouter extends AbstractRouter {
     private static final int DEFAULT_PRIORITY = 2;
     private static Pattern ROUTE_PATTERN = Pattern.compile("([&!=,]*)\\s*([^&!=,\\s]+)");
     private final boolean force;
+    // 是否满足判断条件
     private final Map<String, MatchPair> whenCondition;
+    // 当满足判断条件时如何选择Invoker
     private final Map<String, MatchPair> thenCondition;
 
     public ConditionRouter(URL url) {
@@ -57,13 +60,15 @@ public class ConditionRouter extends AbstractRouter {
         this.force = url.getParameter(Constants.FORCE_KEY, false);
         try {
             String rule = url.getParameterAndDecoded(Constants.RULE_KEY);
-            if (rule == null || rule.trim().length() == 0) {
+            if (rule == null || rule.trim().length() == 0) {    // 必须包含路由规则
                 throw new IllegalArgumentException("Illegal route rule!");
             }
             rule = rule.replace("consumer.", "").replace("provider.", "");
+            // 根据 => 解析路由规则
             int i = rule.indexOf("=>");
             String whenRule = i < 0 ? null : rule.substring(0, i).trim();
             String thenRule = i < 0 ? rule.trim() : rule.substring(i + 2).trim();
+            // 分别生成provider和consumer的rule
             Map<String, MatchPair> when = StringUtils.isBlank(whenRule) || "true".equals(whenRule) ? new HashMap<String, MatchPair>() : parseRule(whenRule);
             Map<String, MatchPair> then = StringUtils.isBlank(thenRule) || "false".equals(thenRule) ? null : parseRule(thenRule);
             // NOTE: It should be determined on the business level whether the `When condition` can be empty or not.
@@ -74,6 +79,13 @@ public class ConditionRouter extends AbstractRouter {
         }
     }
 
+    /**
+     * 解析路由规则
+     *
+     * @param rule
+     * @return
+     * @throws ParseException
+     */
     private static Map<String, MatchPair> parseRule(String rule)
             throws ParseException {
         Map<String, MatchPair> condition = new HashMap<String, MatchPair>();
@@ -81,29 +93,35 @@ public class ConditionRouter extends AbstractRouter {
             return condition;
         }
         // Key-Value pair, stores both match and mismatch conditions
-        MatchPair pair = null;
+        MatchPair pair = null;  // 当前操作的数据 用于在循环中使用 标识上一次循环所操作的信息
         // Multiple values
         Set<String> values = null;
+        // 对每一个条件进行转换 如host = 1.1.1.* & host != 1.1.1.2 & method=say会被分割成以下几部分
+        // 1. "" host
+        // 2. "=" 1.1.1.x
+        // 3. "&" host
+        // 4. "!=" 1.1.1.2
+        // ...
         final Matcher matcher = ROUTE_PATTERN.matcher(rule);
         while (matcher.find()) { // Try to match one by one
-            String separator = matcher.group(1);
-            String content = matcher.group(2);
+            String separator = matcher.group(1);    // 分割符
+            String content = matcher.group(2);  // 内容
             // Start part of the condition expression.
-            if (separator == null || separator.length() == 0) {
+            if (separator == null || separator.length() == 0) { // 如果不存在分隔符 则认为是首个判断
                 pair = new MatchPair();
-                condition.put(content, pair);
+                condition.put(content, pair);   // 直接放入condition
             }
             // The KV part of the condition expression
-            else if ("&".equals(separator)) {
-                if (condition.get(content) == null) {
+            else if ("&".equals(separator)) {   // 如果是"&"则代表并且
+                if (condition.get(content) == null) {   // 如果当前的when或者then中不包含该判断条件 则添加
                     pair = new MatchPair();
                     condition.put(content, pair);
-                } else {
+                } else {    // 否则当前的condition就需要拿出来
                     pair = condition.get(content);
                 }
             }
             // The Value in the KV part.
-            else if ("=".equals(separator)) {
+            else if ("=".equals(separator)) {   // 如果是等于的比较 则需要将值放入matches中
                 if (pair == null)
                     throw new ParseException("Illegal route rule \""
                             + rule + "\", The error char '" + separator
@@ -114,7 +132,7 @@ public class ConditionRouter extends AbstractRouter {
                 values.add(content);
             }
             // The Value in the KV part.
-            else if ("!=".equals(separator)) {
+            else if ("!=".equals(separator)) {  // 如果为不等于 则需要放入到mismatches中
                 if (pair == null)
                     throw new ParseException("Illegal route rule \""
                             + rule + "\", The error char '" + separator
@@ -125,7 +143,7 @@ public class ConditionRouter extends AbstractRouter {
                 values.add(content);
             }
             // The Value in the KV part, if Value have more than one items.
-            else if (",".equals(separator)) { // Should be seperateed by ','
+            else if (",".equals(separator)) { // Should be seperateed by ',' 如果values是多个的话  则分别加入到values列表中
                 if (values == null || values.isEmpty())
                     throw new ParseException("Illegal route rule \""
                             + rule + "\", The error char '" + separator
@@ -141,6 +159,16 @@ public class ConditionRouter extends AbstractRouter {
         return condition;
     }
 
+    /**
+     * 根据路由规则选择Invoker列表
+     *
+     * @param invokers
+     * @param url        refer url
+     * @param invocation
+     * @param <T>
+     * @return
+     * @throws RpcException
+     */
     @Override
     public <T> List<Invoker<T>> route(List<Invoker<T>> invokers, URL url, Invocation invocation)
             throws RpcException {
@@ -148,7 +176,7 @@ public class ConditionRouter extends AbstractRouter {
             return invokers;
         }
         try {
-            if (!matchWhen(url, invocation)) {
+            if (!matchWhen(url, invocation)) {  // 不满足条件直接返回
                 return invokers;
             }
             List<Invoker<T>> result = new ArrayList<Invoker<T>>();
@@ -157,7 +185,7 @@ public class ConditionRouter extends AbstractRouter {
                 return result;
             }
             for (Invoker<T> invoker : invokers) {
-                if (matchThen(invoker.getUrl(), url)) {
+                if (matchThen(invoker.getUrl(), url)) { // 判断每一个Invoker的url是否满足条件
                     result.add(invoker);
                 }
             }
@@ -188,10 +216,12 @@ public class ConditionRouter extends AbstractRouter {
     }
 
     boolean matchWhen(URL url, Invocation invocation) {
+        // 判断条件为空 || 条件匹配认定为匹配
         return whenCondition == null || whenCondition.isEmpty() || matchCondition(whenCondition, url, null, invocation);
     }
 
     private boolean matchThen(URL url, URL param) {
+        // 判断条件不为空 && 条件匹配认定为匹配
         return !(thenCondition == null || thenCondition.isEmpty()) && matchCondition(thenCondition, url, param, null);
     }
 
@@ -229,7 +259,9 @@ public class ConditionRouter extends AbstractRouter {
     }
 
     private static final class MatchPair {
+        // 满足/匹配的条件
         final Set<String> matches = new HashSet<String>();
+        // 不满足/不匹配的条件
         final Set<String> mismatches = new HashSet<String>();
 
         private boolean isMatch(String value, URL param) {
