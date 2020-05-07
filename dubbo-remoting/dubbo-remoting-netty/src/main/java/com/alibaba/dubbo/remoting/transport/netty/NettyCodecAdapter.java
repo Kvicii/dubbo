@@ -20,7 +20,6 @@ import com.alibaba.dubbo.common.Constants;
 import com.alibaba.dubbo.common.URL;
 import com.alibaba.dubbo.remoting.Codec2;
 import com.alibaba.dubbo.remoting.buffer.DynamicChannelBuffer;
-
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.channel.Channel;
@@ -136,7 +135,7 @@ final class NettyCodecAdapter {
                         throw e;
                     }
                     if (msg == Codec2.DecodeResult.NEED_MORE_INPUT) {
-                        message.readerIndex(saveReaderIndex);
+                        message.readerIndex(saveReaderIndex);   // 读索引回滚
                         break;
                     } else {
                         if (saveReaderIndex == message.readerIndex()) {
@@ -149,7 +148,7 @@ final class NettyCodecAdapter {
                     }
                 } while (message.readable());
             } finally {
-                if (message.readable()) {
+                if (message.readable()) {   // 判断是否可读
                     message.discardReadBytes();
                     buffer = message;
                 } else {

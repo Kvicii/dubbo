@@ -19,7 +19,6 @@ package com.alibaba.dubbo.remoting.transport.netty4;
 import com.alibaba.dubbo.common.URL;
 import com.alibaba.dubbo.remoting.Codec2;
 import com.alibaba.dubbo.remoting.buffer.ChannelBuffer;
-
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandler;

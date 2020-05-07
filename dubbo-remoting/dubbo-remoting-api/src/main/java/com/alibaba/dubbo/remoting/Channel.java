@@ -21,8 +21,6 @@ import java.net.InetSocketAddress;
 /**
  * Channel. (API/SPI, Prototype, ThreadSafe)
  *
- *
- *
  * @see com.alibaba.dubbo.remoting.Client
  * @see com.alibaba.dubbo.remoting.Server#getChannels()
  * @see com.alibaba.dubbo.remoting.Server#getChannel(InetSocketAddress)

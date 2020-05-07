@@ -75,9 +75,9 @@ public class DubboCodec extends ExchangeCodec implements Codec2 {
                 if (status == Response.OK) {
                     Object data;
                     if (res.isHeartbeat()) {
-                        data = decodeHeartbeatData(channel,  CodecSupport.deserialize(channel.getUrl(), is, proto));
+                        data = decodeHeartbeatData(channel, CodecSupport.deserialize(channel.getUrl(), is, proto));
                     } else if (res.isEvent()) {
-                        data = decodeEventData(channel,  CodecSupport.deserialize(channel.getUrl(), is, proto));
+                        data = decodeEventData(channel, CodecSupport.deserialize(channel.getUrl(), is, proto));
                     } else {
                         DecodeableRpcResult result;
                         if (channel.getUrl().getParameter(
@@ -168,27 +168,27 @@ public class DubboCodec extends ExchangeCodec implements Codec2 {
     protected void encodeRequestData(Channel channel, ObjectOutput out, Object data, String version) throws IOException {
         RpcInvocation inv = (RpcInvocation) data;
 
-        out.writeUTF(version);
-        out.writeUTF(inv.getAttachment(Constants.PATH_KEY));
-        out.writeUTF(inv.getAttachment(Constants.VERSION_KEY));
+        out.writeUTF(version);  // 写入版本
+        out.writeUTF(inv.getAttachment(Constants.PATH_KEY));    // 写入接口全名称
+        out.writeUTF(inv.getAttachment(Constants.VERSION_KEY)); // 写入接口版本号
 
-        out.writeUTF(inv.getMethodName());
-        out.writeUTF(ReflectUtils.getDesc(inv.getParameterTypes()));
+        out.writeUTF(inv.getMethodName());  // 写入方法名称
+        out.writeUTF(ReflectUtils.getDesc(inv.getParameterTypes()));    // 写入参数描述信息
         Object[] args = inv.getArguments();
         if (args != null)
             for (int i = 0; i < args.length; i++) {
-                out.writeObject(encodeInvocationArgument(channel, inv, i));
+                out.writeObject(encodeInvocationArgument(channel, inv, i)); // 写入请求参数
             }
-        out.writeObject(inv.getAttachments());
+        out.writeObject(inv.getAttachments());  // 写入所有附加信息
     }
 
     @Override
     protected void encodeResponseData(Channel channel, ObjectOutput out, Object data, String version) throws IOException {
         Result result = (Result) data;
         // currently, the version value in Response records the version of Request
-        boolean attach = Version.isSupportResponseAttatchment(version);
+        boolean attach = Version.isSupportResponseAttatchment(version); // 是否支持返回attachment参数
         Throwable th = result.getException();
-        if (th == null) {
+        if (th == null) {   // 如果没有异常信息直接写入内容
             Object ret = result.getValue();
             if (ret == null) {
                 out.writeByte(attach ? RESPONSE_NULL_VALUE_WITH_ATTACHMENTS : RESPONSE_NULL_VALUE);
@@ -196,12 +196,12 @@ public class DubboCodec extends ExchangeCodec implements Codec2 {
                 out.writeByte(attach ? RESPONSE_VALUE_WITH_ATTACHMENTS : RESPONSE_VALUE);
                 out.writeObject(ret);
             }
-        } else {
+        } else {    // 将异常信息序列化
             out.writeByte(attach ? RESPONSE_WITH_EXCEPTION_WITH_ATTACHMENTS : RESPONSE_WITH_EXCEPTION);
             out.writeObject(th);
         }
 
-        if (attach) {
+        if (attach) {   // 支持写入attachment则写入
             // returns current version of Response to consumer side.
             result.getAttachments().put(Constants.DUBBO_VERSION_KEY, Version.getProtocolVersion());
             out.writeObject(result.getAttachments());

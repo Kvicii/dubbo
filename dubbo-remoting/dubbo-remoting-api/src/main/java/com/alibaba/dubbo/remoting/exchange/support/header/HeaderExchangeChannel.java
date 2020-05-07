@@ -66,6 +66,7 @@ final class HeaderExchangeChannel implements ExchangeChannel {
         }
         return ret;
     }
+    
 
     static void removeChannelIfDisconnected(Channel ch) {
         if (ch != null && !ch.isConnected()) {
@@ -106,16 +107,16 @@ final class HeaderExchangeChannel implements ExchangeChannel {
         if (closed) {
             throw new RemotingException(this.getLocalAddress(), null, "Failed to send request " + request + ", cause: The channel " + this + " is closed!");
         }
-        // create request.
+        // create request. 创建请求对象
         Request req = new Request();
         req.setVersion(Version.getProtocolVersion());
         req.setTwoWay(true);
         req.setData(request);
-        DefaultFuture future = new DefaultFuture(channel, req, timeout);
+        DefaultFuture future = new DefaultFuture(channel, req, timeout);    // 创建执行结果的回调信息
         try {
-            channel.send(req);
+            channel.send(req);  // 交给业务渠道处理 实际上是交给Transporter这个SPI进行创建 NettyChannel就是在这里产生的
         } catch (RemotingException e) {
-            future.cancel();
+            future.cancel();    // 请求出现异常则取消当前的请求封装
             throw e;
         }
         return future;

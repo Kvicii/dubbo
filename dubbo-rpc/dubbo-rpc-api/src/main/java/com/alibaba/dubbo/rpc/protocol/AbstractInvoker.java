@@ -125,14 +125,14 @@ public abstract class AbstractInvoker<T> implements Invoker<T> {
     @Override
     public Result invoke(Invocation inv) throws RpcException {
         // if invoker is destroyed due to address refresh from registry, let's allow the current invoke to proceed
-        if (destroyed.get()) {
+        if (destroyed.get()) {  // 判断系统是否已经关闭
             logger.warn("Invoker for service " + this + " on consumer " + NetUtils.getLocalHost() + " is destroyed, "
                     + ", dubbo version is " + Version.getVersion() + ", this invoker should not be used any longer");
         }
 
         RpcInvocation invocation = (RpcInvocation) inv;
         invocation.setInvoker(this);
-        if (attachment != null && attachment.size() > 0) {
+        if (attachment != null && attachment.size() > 0) {  // 设置所有RpcContext信息
             invocation.addAttachmentsIfAbsent(attachment);
         }
         Map<String, String> contextAttachments = RpcContext.getContext().getAttachments();
@@ -148,13 +148,13 @@ public abstract class AbstractInvoker<T> implements Invoker<T> {
         if (getUrl().getMethodParameter(invocation.getMethodName(), Constants.ASYNC_KEY, false)) {
             invocation.setAttachment(Constants.ASYNC_KEY, Boolean.TRUE.toString());
         }
-        RpcUtils.attachInvocationIdIfAsync(getUrl(), invocation);
+        RpcUtils.attachInvocationIdIfAsync(getUrl(), invocation);   // 设置执行id 用于适配异步模式
 
 
         try {
-            return doInvoke(invocation);
+            return doInvoke(invocation);    // 交给子类执行
         } catch (InvocationTargetException e) { // biz exception
-            Throwable te = e.getTargetException();
+            Throwable te = e.getTargetException();  // 业务异常
             if (te == null) {
                 return new RpcResult(e);
             } else {
@@ -164,7 +164,7 @@ public abstract class AbstractInvoker<T> implements Invoker<T> {
                 return new RpcResult(te);
             }
         } catch (RpcException e) {
-            if (e.isBiz()) {
+            if (e.isBiz()) {    // RPC阶段出现了异常
                 return new RpcResult(e);
             } else {
                 throw e;

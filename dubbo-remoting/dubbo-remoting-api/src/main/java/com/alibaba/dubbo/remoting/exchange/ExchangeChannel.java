@@ -36,8 +36,8 @@ public interface ExchangeChannel extends Channel {
     /**
      * send request.
      *
-     * @param request
-     * @param timeout
+     * @param request 请求对象 实际上是一个RpcInvocation对象
+     * @param timeout 超市时间
      * @return response future
      * @throws RemotingException
      */
