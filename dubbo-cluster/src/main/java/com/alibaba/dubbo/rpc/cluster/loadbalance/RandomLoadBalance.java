@@ -40,8 +40,7 @@ public class RandomLoadBalance extends AbstractLoadBalance {
         for (int i = 0; i < length; i++) {
             int weight = getWeight(invokers.get(i), invocation);
             totalWeight += weight; // Sum
-            if (sameWeight && i > 0
-                    && weight != getWeight(invokers.get(i - 1), invocation)) {
+            if (sameWeight && i > 0 && weight != getWeight(invokers.get(i - 1), invocation)) {
                 sameWeight = false;
             }
         }

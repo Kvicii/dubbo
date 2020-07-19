@@ -68,7 +68,7 @@ public class FailoverClusterInvoker<T> extends AbstractClusterInvoker<T> {
             //Reselect before retry to avoid a change of candidate `invokers`.
             //NOTE: if `invokers` changed, then `invoked` also lose accuracy.
             if (i > 0) {
-                checkWhetherDestroyed();    // 每一次都检查是否关闭类consumer
+                checkWhetherDestroyed();    // 每一次都检查是否关闭consumer
                 copyinvokers = list(invocation);    // 重新获取Invoker列表
                 // check again
                 checkInvokers(copyinvokers, invocation);    // 再次进行检查

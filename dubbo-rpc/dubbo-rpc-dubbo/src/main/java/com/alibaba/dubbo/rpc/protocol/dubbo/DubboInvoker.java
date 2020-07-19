@@ -80,7 +80,7 @@ public class DubboInvoker<T> extends AbstractInvoker<T> {
         try {
             boolean isAsync = RpcUtils.isAsync(getUrl(), invocation);
             boolean isOneway = RpcUtils.isOneway(getUrl(), invocation); // 客户端发送出去 不在乎服务端的返回结果 通常适用于异步请求
-            int timeout = getUrl().getMethodParameter(methodName, Constants.TIMEOUT_KEY, Constants.DEFAULT_TIMEOUT);    // 超市时间的设置
+            int timeout = getUrl().getMethodParameter(methodName, Constants.TIMEOUT_KEY, Constants.DEFAULT_TIMEOUT);    // 超时时间的设置
             if (isOneway) {
                 boolean isSent = getUrl().getMethodParameter(methodName, Constants.SENT_KEY, false);
                 currentClient.send(inv, isSent);    // 发送

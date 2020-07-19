@@ -198,8 +198,6 @@ import java.nio.ByteBuffer;
  * <p/>
  * Please refer to {@link ChannelBufferInputStream} and {@link
  * ChannelBufferOutputStream}.
- *
- *
  */
 public interface ChannelBuffer extends Comparable<ChannelBuffer> {
 

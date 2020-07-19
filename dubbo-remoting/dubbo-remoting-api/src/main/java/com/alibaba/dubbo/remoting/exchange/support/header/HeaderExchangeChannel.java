@@ -66,7 +66,7 @@ final class HeaderExchangeChannel implements ExchangeChannel {
         }
         return ret;
     }
-    
+
 
     static void removeChannelIfDisconnected(Channel ch) {
         if (ch != null && !ch.isConnected()) {
