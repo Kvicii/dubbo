@@ -27,6 +27,7 @@ import java.util.List;
 
 /**
  * MethodConfig
+ * 继承 AbstractMethodConfig 方法级配置
  *
  * @export
  */
@@ -85,13 +86,13 @@ public class MethodConfig extends AbstractMethodConfig {
         appendAnnotation(Method.class, method);
         this.setReturn(method.isReturn());
 
-        if(StringUtils.isNotEmpty(method.oninvoke())){
+        if (StringUtils.isNotEmpty(method.oninvoke())) {
             this.setOninvoke(method.oninvoke());
         }
-        if(StringUtils.isNotEmpty(method.onreturn())){
+        if (StringUtils.isNotEmpty(method.onreturn())) {
             this.setOnreturn(method.onreturn());
         }
-        if(StringUtils.isNotEmpty(method.onthrow())){
+        if (StringUtils.isNotEmpty(method.onthrow())) {
             this.setOnthrow(method.onthrow());
         }
 

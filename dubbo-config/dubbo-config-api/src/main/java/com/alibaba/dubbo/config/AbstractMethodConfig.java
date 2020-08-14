@@ -24,6 +24,7 @@ import java.util.Map;
 
 /**
  * AbstractMethodConfig
+ * 方法级别配置的抽象类
  *
  * @export
  */

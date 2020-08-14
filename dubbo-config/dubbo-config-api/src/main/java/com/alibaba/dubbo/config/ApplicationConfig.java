@@ -28,6 +28,7 @@ import java.util.Map;
 
 /**
  * ApplicationConfig
+ * 应用配置
  *
  * @export
  */
