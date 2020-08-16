@@ -125,12 +125,16 @@ public abstract class AbstractConfig implements Serializable {
             return;
         }
         String prefix = "dubbo." + getTagName(config.getClass()) + ".";
+        // 获得配置类的所有方法 用于下面通过反射获得配置项的属性名 再用属性名去读取启动参数变量和properties 配置到配置对象
         Method[] methods = config.getClass().getMethods();
         for (Method method : methods) {
             try {
                 String name = method.getName();
-                if (name.length() > 3 && name.startsWith("set") && Modifier.isPublic(method.getModifiers()) // // 方法是 public 的 setting 方法
-                        && method.getParameterTypes().length == 1 && isPrimitive(method.getParameterTypes()[0])) {  // 方法的唯一参数是基本数据类型
+                // 唯一参数为基本类型决定了一个配置对象无法设置另外一个配置对象数组为属性
+                // 即没有多注册中心 | 多协议等情况
+                // 例如 ServiceConfig无法通过属性配置设置多个ProtocolConfig对象
+                if (name.length() > 3 && name.startsWith("set") && Modifier.isPublic(method.getModifiers())
+                        && method.getParameterTypes().length == 1 && isPrimitive(method.getParameterTypes()[0])) {  // 方法是 public的 唯一参数是基本数据类型的 set方法
                     //  获得属性名 例如 `ApplicationConfig#setName(...)` 方法 对应的属性名为 name
                     String property = StringUtils.camelToSplitName(name.substring(3, 4).toLowerCase() + name.substring(4), ".");
                     // [环境变量]优先从带有 `Config#id` 的配置中获取 例如: `dubbo.application.demo-provider.name`
@@ -142,7 +146,7 @@ public abstract class AbstractConfig implements Serializable {
                             logger.info("Use System Property " + pn + " to config dubbo");
                         }
                     }
-                    // [环境变量]获取不到，其次不带 `Config#id` 的配置中获取 例如: `dubbo.application.name`
+                    // [环境变量]获取不到 其次不带 `Config#id` 的配置中获取 例如: `dubbo.application.name`
                     if (value == null || value.length() == 0) {
                         String pn = prefix + property;  // 不带 `Config#id`
                         value = System.getProperty(pn);
@@ -150,6 +154,7 @@ public abstract class AbstractConfig implements Serializable {
                             logger.info("Use System Property " + pn + " to config dubbo");
                         }
                     }
+                    // 因为XML配置的优先级大于properties配置 因此需要获取并使用getting方法判断配置对象已经拥有该配置项的值 如果有 则不从properties配置 读取对应的值
                     if (value == null || value.length() == 0) { // 配置的覆盖优先级为 环境变量 > XML 配置 > properties 配置 因此需要使用 getter 判断 XML 是否已经设置
                         Method getter;
                         try {
@@ -162,7 +167,7 @@ public abstract class AbstractConfig implements Serializable {
                             }
                         }
                         if (getter != null) {
-                            if (getter.invoke(config) == null) {    // 使用 getter 判断 XML 是否已经设置
+                            if (getter.invoke(config) == null) {    // 使用 getter 判断XML是否已经设置 没读到说明未设置 此时读取properties文件进行设置
                                 // [properties 配置]优先从带有 `Config#id` 的配置中获取 例如: `dubbo.application.demo-provider.name`
                                 if (config.getId() != null && config.getId().length() > 0) {
                                     value = ConfigUtils.getProperty(prefix + config.getId() + "." + property);
@@ -182,19 +187,19 @@ public abstract class AbstractConfig implements Serializable {
                             }
                         }
                     }
-                    if (value != null && value.length() > 0) {  // 获取到值 进行反射设置
+                    if (value != null && value.length() > 0) {  // 获取到值 进行反射设置到配置对象中
                         method.invoke(config, convertPrimitive(method.getParameterTypes()[0], value));
                     }
                 }
             } catch (Exception e) {
-                logger.error(e.getMessage(), e);
+                logger.error(e.getMessage(), e);    // 逻辑中间发生异常 不抛出异常 仅打印错误日志
             }
         }
     }
 
     /**
-     * 获取类名对应的属性标签
-     * 例如ServiceConfig 对应为 service
+     * 使用配置类的类名获取对应的属性标签
+     * 例如ServiceConfig 对应为 Service
      *
      * @param cls 类名
      * @return
