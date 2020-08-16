@@ -35,6 +35,8 @@ public class ProviderByAPI {
         serviceConfig.setRef(demoService);
         serviceConfig.setVersion("1.0.0");
 
-        serviceConfig.export();
+        while (true) {
+            serviceConfig.export();
+        }
     }
 }
