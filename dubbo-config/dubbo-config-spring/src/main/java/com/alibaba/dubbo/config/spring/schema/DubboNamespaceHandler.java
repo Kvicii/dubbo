@@ -26,11 +26,11 @@ import com.alibaba.dubbo.config.ProviderConfig;
 import com.alibaba.dubbo.config.RegistryConfig;
 import com.alibaba.dubbo.config.spring.ReferenceBean;
 import com.alibaba.dubbo.config.spring.ServiceBean;
-
 import org.springframework.beans.factory.xml.NamespaceHandlerSupport;
 
 /**
  * DubboNamespaceHandler
+ * Dubbo 的 XML Namespace 的处理器
  *
  * @export
  */
@@ -51,7 +51,7 @@ public class DubboNamespaceHandler extends NamespaceHandlerSupport {
         registerBeanDefinitionParser("protocol", new DubboBeanDefinitionParser(ProtocolConfig.class, true));
         registerBeanDefinitionParser("service", new DubboBeanDefinitionParser(ServiceBean.class, true));
         registerBeanDefinitionParser("reference", new DubboBeanDefinitionParser(ReferenceBean.class, false));
-        registerBeanDefinitionParser("annotation", new AnnotationBeanDefinitionParser());
+        registerBeanDefinitionParser("annotation", new AnnotationBeanDefinitionParser());   // 废弃
     }
 
 }
