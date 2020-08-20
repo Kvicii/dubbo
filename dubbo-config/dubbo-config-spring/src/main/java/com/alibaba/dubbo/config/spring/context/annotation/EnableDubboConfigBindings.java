@@ -28,13 +28,13 @@ import java.lang.annotation.Target;
 /**
  * Multiple {@link EnableDubboConfigBinding} {@link Annotation}
  *
- * @since 2.5.8
  * @see EnableDubboConfigBinding
+ * @since 2.5.8
  */
 @Target({ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
-@Import(DubboConfigBindingsRegistrar.class)
+@Import(DubboConfigBindingsRegistrar.class) // 使用 DubboConfigBindingsRegistrar 类进行导入
 public @interface EnableDubboConfigBindings {
 
     /**

@@ -17,7 +17,6 @@
 package com.alibaba.dubbo.config.spring.context.annotation;
 
 import com.alibaba.dubbo.config.AbstractConfig;
-
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.context.EnvironmentAware;
 import org.springframework.context.annotation.ImportBeanDefinitionRegistrar;
@@ -29,6 +28,9 @@ import org.springframework.util.Assert;
 
 /**
  * {@link AbstractConfig Dubbo Config} binding Bean registrar for {@link EnableDubboConfigBindings}
+ * <p>
+ * 实现 ImportBeanDefinitionRegistrar | EnvironmentAware 接口
+ * 处理 @EnableDubboConfigBindings 注解 注册相应的 Dubbo AbstractConfig 到 Spring 容器中
  *
  * @see EnableDubboConfigBindings
  * @see DubboConfigBindingRegistrar
@@ -41,18 +43,20 @@ public class DubboConfigBindingsRegistrar implements ImportBeanDefinitionRegistr
     @Override
     public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry) {
 
+        // 获得 @EnableDubboConfigBindings 注解
         AnnotationAttributes attributes = AnnotationAttributes.fromMap(
                 importingClassMetadata.getAnnotationAttributes(EnableDubboConfigBindings.class.getName()));
 
+        // 获得内部的 @EnableDubboConfigBinding 注解的数组
         AnnotationAttributes[] annotationAttributes = attributes.getAnnotationArray("value");
 
+        // 创建 DubboConfigBindingRegistrar 对象 并设置 environment 属性
         DubboConfigBindingRegistrar registrar = new DubboConfigBindingRegistrar();
         registrar.setEnvironment(environment);
 
+        // 遍历 annotationAttributes 数组 使用 registrar 进行逐个 @EnableDubboConfigBinding 注解的注册对应的 Bean
         for (AnnotationAttributes element : annotationAttributes) {
-
             registrar.registerBeanDefinitions(element, registry);
-
         }
     }
 
@@ -60,9 +64,6 @@ public class DubboConfigBindingsRegistrar implements ImportBeanDefinitionRegistr
     public void setEnvironment(Environment environment) {
 
         Assert.isInstanceOf(ConfigurableEnvironment.class, environment);
-
         this.environment = (ConfigurableEnvironment) environment;
-
     }
-
 }

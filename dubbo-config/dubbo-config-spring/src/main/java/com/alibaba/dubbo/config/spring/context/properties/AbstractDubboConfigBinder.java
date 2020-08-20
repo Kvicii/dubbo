@@ -22,9 +22,13 @@ import org.springframework.core.env.PropertySource;
 
 /**
  * Abstract {@link DubboConfigBinder} implementation
+ * 实现 DubboConfigBinder 接口 DubboConfigBinder 的抽象基类
  */
 public abstract class AbstractDubboConfigBinder implements DubboConfigBinder {
 
+    /**
+     * PropertySource 数组(迭代)
+     */
     private Iterable<PropertySource<?>> propertySources;
 
     private boolean ignoreUnknownFields = true;

@@ -42,6 +42,7 @@ import static org.springframework.beans.factory.BeanFactoryUtils.beansOfTypeIncl
 
 /**
  * Dubbo Config Binding {@link BeanPostProcessor}
+ * 实现 BeanPostProcessor | ApplicationContextAware |InitializingBean 接口 处理 Dubbo AbstractConfig Bean 的配置属性注入
  *
  * @see EnableDubboConfigBinding
  * @see DubboConfigBindingRegistrar
@@ -54,11 +55,13 @@ public class DubboConfigBindingBeanPostProcessor implements BeanPostProcessor, A
 
     /**
      * The prefix of Configuration Properties
+     * 配置属性的前缀
      */
     private final String prefix;
 
     /**
      * Binding Bean Name
+     * Bean 的名字
      */
     private final String beanName;
 
@@ -82,12 +85,9 @@ public class DubboConfigBindingBeanPostProcessor implements BeanPostProcessor, A
     @Override
     public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
 
-        if (beanName.equals(this.beanName) && bean instanceof AbstractConfig) {
-
+        if (beanName.equals(this.beanName) && bean instanceof AbstractConfig) { // 判断必须是一致的 beanName 并且是 AbstractConfig 类型
             AbstractConfig dubboConfig = (AbstractConfig) bean;
-
-            bind(prefix, dubboConfig);
-
+            bind(prefix, dubboConfig);  // 设置属性到 dubboConfig 中
             customize(beanName, dubboConfig);
         }
         return bean;
@@ -129,11 +129,13 @@ public class DubboConfigBindingBeanPostProcessor implements BeanPostProcessor, A
         this.applicationContext = applicationContext;
     }
 
+    /**
+     * 设置 dubboConfigBinder 属性
+     */
     @Override
-    public void afterPropertiesSet() throws Exception {
+    public void afterPropertiesSet() {
 
-        initDubboConfigBinder();
-
+        initDubboConfigBinder();    // 获得(创建)DubboConfigBinder 对象
         initConfigBeanCustomizers();
 
     }
@@ -148,6 +150,7 @@ public class DubboConfigBindingBeanPostProcessor implements BeanPostProcessor, A
                     log.debug("DubboConfigBinder Bean can't be found in ApplicationContext.");
                 }
                 // Use Default implementation
+                // 创建 DefaultDubboConfigBinder 对象
                 dubboConfigBinder = createDubboConfigBinder(applicationContext.getEnvironment());
             }
         }
@@ -172,12 +175,11 @@ public class DubboConfigBindingBeanPostProcessor implements BeanPostProcessor, A
      */
     protected DubboConfigBinder createDubboConfigBinder(Environment environment) {
         DefaultDubboConfigBinder defaultDubboConfigBinder = new DefaultDubboConfigBinder();
+        // 设置 environment 属性
         defaultDubboConfigBinder.setEnvironment(environment);
-
+        // 设置 ignoreUnknownFields ignoreInvalidFields 属性
         defaultDubboConfigBinder.setIgnoreUnknownFields(true);
         defaultDubboConfigBinder.setIgnoreInvalidFields(true);
-
         return defaultDubboConfigBinder;
     }
-
 }

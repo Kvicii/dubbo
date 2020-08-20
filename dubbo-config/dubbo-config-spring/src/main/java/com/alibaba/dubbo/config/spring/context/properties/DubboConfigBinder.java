@@ -17,11 +17,12 @@
 package com.alibaba.dubbo.config.spring.context.properties;
 
 import com.alibaba.dubbo.config.AbstractConfig;
-
 import org.springframework.context.EnvironmentAware;
 
 /**
  * {@link AbstractConfig DubboConfig} Binder
+ * <p>
+ * 继承 EnvironmentAware 接口
  *
  * @see AbstractConfig
  * @see EnvironmentAware

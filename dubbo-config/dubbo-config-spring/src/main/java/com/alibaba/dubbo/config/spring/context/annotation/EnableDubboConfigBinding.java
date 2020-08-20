@@ -21,7 +21,6 @@ import com.alibaba.dubbo.config.ApplicationConfig;
 import com.alibaba.dubbo.config.ModuleConfig;
 import com.alibaba.dubbo.config.RegistryConfig;
 import com.alibaba.dubbo.config.spring.beans.factory.annotation.DubboConfigBindingBeanPostProcessor;
-
 import org.springframework.context.annotation.Import;
 import org.springframework.core.env.PropertySources;
 
@@ -48,17 +47,21 @@ import java.lang.annotation.Target;
 @Target({ElementType.TYPE, ElementType.ANNOTATION_TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
-@Import(DubboConfigBindingRegistrar.class)
+@Import(DubboConfigBindingRegistrar.class)  // 使用 DubboConfigBindingRegistrar 类进行导入
 public @interface EnableDubboConfigBinding {
 
     /**
      * The name prefix of the properties that are valid to bind to {@link AbstractConfig Dubbo Config}.
+     * <p>
+     * 配置前缀
      *
      * @return the name prefix of the properties to bind
      */
     String prefix();
 
     /**
+     * 配置类型
+     *
      * @return The binding type of {@link AbstractConfig Dubbo Config}.
      * @see AbstractConfig
      * @see ApplicationConfig
@@ -69,6 +72,8 @@ public @interface EnableDubboConfigBinding {
 
     /**
      * It indicates whether {@link #prefix()} binding to multiple Spring Beans.
+     * <p>
+     * 配置 @EnableDubboConfig 注解 配置是否绑定到多个 Spring Bean 上
      *
      * @return the default value is <code>false</code>
      */

@@ -41,6 +41,9 @@ import static org.springframework.beans.factory.support.BeanDefinitionBuilder.ro
 
 /**
  * Dubbo {@link DubboComponentScan} Bean Registrar
+ * <p>
+ * 实现 ImportBeanDefinitionRegistrar 接口 处理 @DubboComponentScan 注解
+ * 注册相应的 ServiceAnnotationBeanPostProcessor 和 ReferenceAnnotationBeanPostProcessor 到 Spring 容器中
  *
  * @see Service
  * @see DubboComponentScan
@@ -53,11 +56,11 @@ public class DubboComponentScanRegistrar implements ImportBeanDefinitionRegistra
 
     @Override
     public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry) {
-
+        // 获得要扫描的包
         Set<String> packagesToScan = getPackagesToScan(importingClassMetadata);
-
+        // 创建 ServiceAnnotationBeanPostProcessor Bean 对象(后续扫描 `@Service` 注解的类) 创建对应的 Service Bean 对象
         registerServiceAnnotationBeanPostProcessor(packagesToScan, registry);
-
+        // 创建 ReferenceAnnotationBeanPostProcessor Bean 对象(后续扫描 `@Reference` 注解的类) 创建对应的 Reference Bean 对象
         registerReferenceAnnotationBeanPostProcessor(registry);
 
     }
@@ -70,11 +73,15 @@ public class DubboComponentScanRegistrar implements ImportBeanDefinitionRegistra
      * @since 2.5.8
      */
     private void registerServiceAnnotationBeanPostProcessor(Set<String> packagesToScan, BeanDefinitionRegistry registry) {
-
+        // 创建 BeanDefinitionBuilder 对象
         BeanDefinitionBuilder builder = rootBeanDefinition(ServiceAnnotationBeanPostProcessor.class);
+        // 设置构造方法参数为 packagesToScan 即 BeanDefinitionBuilder 扫描该包
         builder.addConstructorArgValue(packagesToScan);
+        // 设置 role 属性
         builder.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
+        // 获得 AbstractBeanDefinition 对象
         AbstractBeanDefinition beanDefinition = builder.getBeanDefinition();
+        // 注册到 registry 中
         BeanDefinitionReaderUtils.registerWithGeneratedName(beanDefinition, registry);
 
     }
@@ -93,21 +100,24 @@ public class DubboComponentScanRegistrar implements ImportBeanDefinitionRegistra
     }
 
     private Set<String> getPackagesToScan(AnnotationMetadata metadata) {
+        // 获得 @DubboComponentScan 注解
         AnnotationAttributes attributes = AnnotationAttributes.fromMap(
                 metadata.getAnnotationAttributes(DubboComponentScan.class.getName()));
+        // 获得其上的属性
         String[] basePackages = attributes.getStringArray("basePackages");
         Class<?>[] basePackageClasses = attributes.getClassArray("basePackageClasses");
         String[] value = attributes.getStringArray("value");
         // Appends value array attributes
+        // 情况一 将属性添加到 packagesToScan 集合中
         Set<String> packagesToScan = new LinkedHashSet<String>(Arrays.asList(value));
         packagesToScan.addAll(Arrays.asList(basePackages));
         for (Class<?> basePackageClass : basePackageClasses) {
             packagesToScan.add(ClassUtils.getPackageName(basePackageClass));
         }
+        //  情况二 如果 packagesToScan 为空 则默认使用注解类所在的包
         if (packagesToScan.isEmpty()) {
             return Collections.singleton(ClassUtils.getPackageName(metadata.getClassName()));
         }
         return packagesToScan;
     }
-
 }

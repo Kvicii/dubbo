@@ -17,7 +17,6 @@
 package com.alibaba.dubbo.config.spring.context.annotation;
 
 import com.alibaba.dubbo.config.AbstractConfig;
-
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.context.annotation.ImportBeanDefinitionRegistrar;
 import org.springframework.core.Ordered;
@@ -29,6 +28,10 @@ import static com.alibaba.dubbo.config.spring.util.AnnotatedBeanDefinitionRegist
 
 /**
  * Dubbo {@link AbstractConfig Config} {@link ImportBeanDefinitionRegistrar register}
+ * <p>
+ * 实现 ImportBeanDefinitionRegistrar 接口
+ * 处理 @EnableDubboConfig 注解
+ * 注册相应的 DubboConfigConfiguration 到 Spring 容器中
  *
  * @see EnableDubboConfig
  * @see DubboConfigConfiguration
@@ -40,14 +43,16 @@ public class DubboConfigConfigurationRegistrar implements ImportBeanDefinitionRe
     @Override
     public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry) {
 
+        // 获得 @EnableDubboConfig 注解的属性
         AnnotationAttributes attributes = AnnotationAttributes.fromMap(
                 importingClassMetadata.getAnnotationAttributes(EnableDubboConfig.class.getName()));
-
+        // 获得 multiple 的值
         boolean multiple = attributes.getBoolean("multiple");
 
         // Single Config Bindings
+        // 注册 DubboConfigConfiguration.Single Bean 对象
         registerBeans(registry, DubboConfigConfiguration.Single.class);
-
+        // 如果为 true 则覆盖为 DubboConfigConfiguration.Multiple Bean 对象
         if (multiple) { // Since 2.6.6 https://github.com/apache/incubator-dubbo/issues/3193
             registerBeans(registry, DubboConfigConfiguration.Multiple.class);
         }

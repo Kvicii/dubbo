@@ -23,7 +23,6 @@ import com.alibaba.dubbo.config.MonitorConfig;
 import com.alibaba.dubbo.config.ProtocolConfig;
 import com.alibaba.dubbo.config.ProviderConfig;
 import com.alibaba.dubbo.config.RegistryConfig;
-
 import org.springframework.context.annotation.Import;
 
 import java.lang.annotation.Documented;
@@ -56,6 +55,7 @@ import java.lang.annotation.Target;
  * <li>{@link ProviderConfig} binding to property :  "dubbo.providers"</li>
  * <li>{@link ConsumerConfig} binding to property :  "dubbo.consumers"</li>
  * </ul>
+ * 开启 Dubbo 配置的注解扫描
  *
  * @see EnableDubboConfigBinding
  * @see DubboConfigConfiguration
@@ -66,7 +66,7 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Inherited
 @Documented
-@Import(DubboConfigConfigurationRegistrar.class)
+@Import(DubboConfigConfigurationRegistrar.class)    // 表明使用 DubboConfigConfigurationRegistrar 类进行导入
 public @interface EnableDubboConfig {
 
     /**
@@ -74,6 +74,8 @@ public @interface EnableDubboConfig {
      * <p>
      * Please note that if {@link #multiple()} is <code>true</code> since 2.6.6, the multiple bean bindings will be
      * enabled, works with single bean bindings, rather than they are mutually exclusive before.
+     * <p>
+     * 配置是否绑定到多个 Spring Bean 上
      *
      * @return the default value is <code>true</code> since 2.6.6, the value is inverse earlier.
      * @revised 2.5.9

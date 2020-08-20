@@ -24,11 +24,12 @@ import com.alibaba.dubbo.config.MonitorConfig;
 import com.alibaba.dubbo.config.ProtocolConfig;
 import com.alibaba.dubbo.config.ProviderConfig;
 import com.alibaba.dubbo.config.RegistryConfig;
-
 import org.springframework.context.annotation.Configuration;
 
 /**
  * Dubbo {@link AbstractConfig Config} {@link Configuration}
+ * <p>
+ * Dubbo AbstractConfig 配置类
  *
  * @see Configuration
  * @see EnableDubboConfigBindings
@@ -46,6 +47,8 @@ public class DubboConfigConfiguration {
 
     /**
      * Single Dubbo {@link AbstractConfig Config} Bean Binding
+     * <p>
+     * Single 其上的注解 prefix 都是单数
      */
     @EnableDubboConfigBindings({
             @EnableDubboConfigBinding(prefix = "dubbo.application", type = ApplicationConfig.class),
@@ -62,6 +65,8 @@ public class DubboConfigConfiguration {
 
     /**
      * Multiple Dubbo {@link AbstractConfig Config} Bean Binding
+     * <p>
+     * Multiple 其上的注解 prefix 都是复数 且有 multiple = true
      */
     @EnableDubboConfigBindings({
             @EnableDubboConfigBinding(prefix = "dubbo.applications", type = ApplicationConfig.class, multiple = true),

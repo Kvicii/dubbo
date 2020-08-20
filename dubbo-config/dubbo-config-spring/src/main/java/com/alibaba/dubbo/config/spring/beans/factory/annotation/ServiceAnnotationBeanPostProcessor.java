@@ -76,6 +76,7 @@ public class ServiceAnnotationBeanPostProcessor implements BeanDefinitionRegistr
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
+    // 要扫描的包的集合
     private final Set<String> packagesToScan;
 
     private Environment environment;
@@ -96,11 +97,17 @@ public class ServiceAnnotationBeanPostProcessor implements BeanDefinitionRegistr
         this.packagesToScan = packagesToScan;
     }
 
+    /**
+     * 扫描 @Service 注解的类 创建对应的 Spring BeanDefinition 对象 从而创建 Dubbo Service Bean 对象
+     *
+     * @param registry
+     * @throws BeansException
+     */
     @Override
     public void postProcessBeanDefinitionRegistry(BeanDefinitionRegistry registry) throws BeansException {
-
+        // 解析 packagesToScan 集合 因为可能存在占位符
         Set<String> resolvedPackagesToScan = resolvePackagesToScan(packagesToScan);
-
+        // 扫描 packagesToScan 包 创建对应的 Spring BeanDefinition 对象 从而创建 Dubbo Service Bean 对象
         if (!CollectionUtils.isEmpty(resolvedPackagesToScan)) {
             registerServiceBeans(resolvedPackagesToScan, registry);
         } else {
@@ -114,6 +121,7 @@ public class ServiceAnnotationBeanPostProcessor implements BeanDefinitionRegistr
 
     /**
      * Registers Beans whose classes was annotated {@link Service}
+     * 创建对应的 Spring BeanDefinition 对象 从而创建 Dubbo Service Bean 对象
      *
      * @param packagesToScan The base packages to scan
      * @param registry       {@link BeanDefinitionRegistry}
@@ -349,11 +357,19 @@ public class ServiceAnnotationBeanPostProcessor implements BeanDefinitionRegistr
 
     }
 
+    /**
+     * 扫描 packagesToScan 包 创建对应的 Spring BeanDefinition 对象 从而创建 Dubbo Service Bean 对象
+     *
+     * @param packagesToScan
+     * @return
+     */
     private Set<String> resolvePackagesToScan(Set<String> packagesToScan) {
         Set<String> resolvedPackagesToScan = new LinkedHashSet<String>(packagesToScan.size());
-        for (String packageToScan : packagesToScan) {
+        for (String packageToScan : packagesToScan) {   // 遍历 packagesToScan 数组
             if (StringUtils.hasText(packageToScan)) {
+                // 解析可能存在的占位符
                 String resolvedPackageToScan = environment.resolvePlaceholders(packageToScan.trim());
+                // 添加到 resolvedPackagesToScan 中
                 resolvedPackagesToScan.add(resolvedPackageToScan);
             }
         }
