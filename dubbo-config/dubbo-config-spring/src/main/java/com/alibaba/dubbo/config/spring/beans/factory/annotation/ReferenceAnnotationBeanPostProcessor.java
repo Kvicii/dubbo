@@ -43,6 +43,10 @@ import java.util.concurrent.ConcurrentMap;
 /**
  * {@link org.springframework.beans.factory.config.BeanPostProcessor} implementation
  * that Consumer service {@link Reference} annotated fields
+ * <p>
+ * 继承 AnnotationInjectedBeanPostProcessor 抽象类 实现 ApplicationContextAware | ApplicationListener 接口
+ * 扫描 @Reference 注解的类 创建对应的 Spring BeanDefinition 对象 从而创建 Dubbo Reference Bean 对象
+ * 即ReferenceAnnotationBeanPostProcessor 实现的就是 支持 @Reference 注解的属性注入
  *
  * @since 2.5.7
  */

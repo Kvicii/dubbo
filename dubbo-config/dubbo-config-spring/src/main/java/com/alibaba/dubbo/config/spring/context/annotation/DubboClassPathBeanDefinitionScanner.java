@@ -29,6 +29,8 @@ import static org.springframework.context.annotation.AnnotationConfigUtils.regis
 
 /**
  * Dubbo {@link ClassPathBeanDefinitionScanner} that exposes some methods to be public.
+ * <p>
+ * 扫描指定包下符合条件的类 用于将每个符合条件的类 创建对应的 BeanDefinition 对象 从而创建 Bean
  *
  * @see #doScan(String...)
  * @see #registerDefaultFilters()
@@ -36,25 +38,19 @@ import static org.springframework.context.annotation.AnnotationConfigUtils.regis
  */
 public class DubboClassPathBeanDefinitionScanner extends ClassPathBeanDefinitionScanner {
 
-
-    public DubboClassPathBeanDefinitionScanner(BeanDefinitionRegistry registry, boolean useDefaultFilters, Environment environment,
-                                               ResourceLoader resourceLoader) {
-
+    public DubboClassPathBeanDefinitionScanner(BeanDefinitionRegistry registry, boolean useDefaultFilters,
+                                               Environment environment, ResourceLoader resourceLoader) {
         super(registry, useDefaultFilters);
 
         setEnvironment(environment);
-
         setResourceLoader(resourceLoader);
-
         registerAnnotationConfigProcessors(registry);
-
     }
 
     public DubboClassPathBeanDefinitionScanner(BeanDefinitionRegistry registry, Environment environment,
                                                ResourceLoader resourceLoader) {
 
         this(registry, false, environment, resourceLoader);
-
     }
 
     @Override
@@ -66,5 +62,4 @@ public class DubboClassPathBeanDefinitionScanner extends ClassPathBeanDefinition
     public boolean checkCandidate(String beanName, BeanDefinition beanDefinition) throws IllegalStateException {
         return super.checkCandidate(beanName, beanDefinition);
     }
-
 }

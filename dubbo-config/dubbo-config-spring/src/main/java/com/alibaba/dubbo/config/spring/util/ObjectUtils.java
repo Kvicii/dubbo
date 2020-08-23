@@ -33,5 +33,4 @@ public abstract class ObjectUtils {
     public static <T> T[] of(T... values) {
         return values;
     }
-
 }
