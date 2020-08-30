@@ -17,12 +17,13 @@
 package com.alibaba.dubbo.config.spring.context.event;
 
 import com.alibaba.dubbo.config.spring.ServiceBean;
-
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationListener;
 
 /**
  * A {@link ApplicationEvent} after {@link ServiceBean} {@link ServiceBean#export() export} invocation
+ * <p>
+ * Service Bean 暴露完成事件
  *
  * @see ApplicationEvent
  * @see ApplicationListener

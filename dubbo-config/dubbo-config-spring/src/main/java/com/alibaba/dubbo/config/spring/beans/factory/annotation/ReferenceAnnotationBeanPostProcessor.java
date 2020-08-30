@@ -63,15 +63,30 @@ public class ReferenceAnnotationBeanPostProcessor extends AnnotationInjectedBean
      */
     private static final int CACHE_SIZE = Integer.getInteger(BEAN_NAME + ".cache.size", 32);
 
+    /**
+     * ReferenceBean 缓存 Map
+     * KEY: Reference Bean 的名字
+     */
     private final ConcurrentMap<String, ReferenceBean<?>> referenceBeanCache =
             new ConcurrentHashMap<String, ReferenceBean<?>>(CACHE_SIZE);
 
+    /**
+     * ReferenceBeanInvocationHandler 缓存 Map
+     * KEY: Reference Bean 的名字
+     */
     private final ConcurrentHashMap<String, ReferenceBeanInvocationHandler> localReferenceBeanInvocationHandlerCache =
             new ConcurrentHashMap<String, ReferenceBeanInvocationHandler>(CACHE_SIZE);
 
+    /**
+     * 使用属性进行注入的 @Reference Bean 的缓存 Map
+     * 一般情况下 使用这个
+     */
     private final ConcurrentMap<InjectionMetadata.InjectedElement, ReferenceBean<?>> injectedFieldReferenceBeanCache =
             new ConcurrentHashMap<InjectionMetadata.InjectedElement, ReferenceBean<?>>(CACHE_SIZE);
 
+    /**
+     * 使用方法进行注入的 @Reference Bean 的缓存 Map
+     */
     private final ConcurrentMap<InjectionMetadata.InjectedElement, ReferenceBean<?>> injectedMethodReferenceBeanCache =
             new ConcurrentHashMap<InjectionMetadata.InjectedElement, ReferenceBean<?>>(CACHE_SIZE);
 
@@ -107,21 +122,40 @@ public class ReferenceAnnotationBeanPostProcessor extends AnnotationInjectedBean
         return Collections.unmodifiableMap(injectedMethodReferenceBeanCache);
     }
 
+    /**
+     * 获得要注入的 @Reference Bean
+     *
+     * @param reference
+     * @param bean            Current bean that will be injected
+     * @param beanName        Current bean name that will be injected
+     * @param injectedType    the type of injected-object
+     * @param injectedElement {@link InjectionMetadata.InjectedElement}
+     * @return
+     * @throws Exception
+     */
     @Override
     protected Object doGetInjectedBean(Reference reference, Object bean, String beanName, Class<?> injectedType,
                                        InjectionMetadata.InjectedElement injectedElement) throws Exception {
 
+        // 获得 Reference Bean 的名字
         String referencedBeanName = buildReferencedBeanName(reference, injectedType);
-
+        // 创建 ReferenceBean 对象
         ReferenceBean referenceBean = buildReferenceBeanIfAbsent(referencedBeanName, reference, injectedType, getClassLoader());
-
+        // 缓存到 injectedFieldReferenceBeanCache or injectedMethodReferenceBeanCache 中
         cacheInjectedReferenceBean(referenceBean, injectedElement);
-
+        // 创建 Proxy 代理对象
         Object proxy = buildProxy(referencedBeanName, referenceBean, injectedType);
-
         return proxy;
     }
 
+    /**
+     * 创建 Proxy 代理对象
+     *
+     * @param referencedBeanName
+     * @param referenceBean
+     * @param injectedType
+     * @return
+     */
     private Object buildProxy(String referencedBeanName, ReferenceBean referenceBean, Class<?> injectedType) {
         InvocationHandler handler = buildInvocationHandler(referencedBeanName, referenceBean);
         Object proxy = Proxy.newProxyInstance(getClassLoader(), new Class[]{injectedType}, handler);
@@ -129,17 +163,19 @@ public class ReferenceAnnotationBeanPostProcessor extends AnnotationInjectedBean
     }
 
     private InvocationHandler buildInvocationHandler(String referencedBeanName, ReferenceBean referenceBean) {
-
+        // 从 localReferenceBeanInvocationHandlerCache 缓存中 获得 ReferenceBeanInvocationHandler 对象
         ReferenceBeanInvocationHandler handler = localReferenceBeanInvocationHandlerCache.get(referencedBeanName);
 
-        if (handler == null) {
+        if (handler == null) {  // 如果不存在 则创建 ReferenceBeanInvocationHandler 对象
             handler = new ReferenceBeanInvocationHandler(referenceBean);
         }
-
+        //  <X> 之后根据引用的 Dubbo 服务是远程的还是本地的 做不同的处理
+        // [本地]判断如果 applicationContext 中已经初始化 说明是本地的 @Service Bean 则添加到 localReferenceBeanInvocationHandlerCache 缓存中
+        // 等到本地的 @Service Bean 暴露后 通过 Spring 事件监听的功能进行实现
         if (applicationContext.containsBean(referencedBeanName)) { // Is local @Service Bean or not ?
             // ReferenceBeanInvocationHandler's initialization has to wait for current local @Service Bean has been exported.
             localReferenceBeanInvocationHandlerCache.put(referencedBeanName, handler);
-        } else {
+        } else {    // [远程]判断如果 applicationContext 中未初始化 说明是远程的 @Service Bean 对象 则立即进行初始化
             // Remote Reference Bean should initialize immediately
             handler.init();
         }
@@ -149,8 +185,14 @@ public class ReferenceAnnotationBeanPostProcessor extends AnnotationInjectedBean
 
     private static class ReferenceBeanInvocationHandler implements InvocationHandler {
 
+        /**
+         * ReferenceBean 对象
+         */
         private final ReferenceBean referenceBean;
 
+        /**
+         * Bean 对象
+         */
         private Object bean;
 
         private ReferenceBeanInvocationHandler(ReferenceBean referenceBean) {
@@ -165,6 +207,7 @@ public class ReferenceAnnotationBeanPostProcessor extends AnnotationInjectedBean
                     // issue: https://github.com/apache/incubator-dubbo/issues/3429
                     init();
                 }
+                // 调用 bean 的对应的方法
                 result = method.invoke(bean, args);
             } catch (InvocationTargetException e) {
                 // re-throws the actual Exception.
@@ -173,6 +216,9 @@ public class ReferenceAnnotationBeanPostProcessor extends AnnotationInjectedBean
             return result;
         }
 
+        /**
+         * 通过初始化方法，可以获得 `ReferenceBean.ref`
+         */
         private void init() {
             this.bean = referenceBean.get();
         }
@@ -189,20 +235,38 @@ public class ReferenceAnnotationBeanPostProcessor extends AnnotationInjectedBean
         return key;
     }
 
+    /**
+     * 获得 Reference Bean 的名字
+     *
+     * @param reference
+     * @param injectedType
+     * @return
+     */
     private String buildReferencedBeanName(Reference reference, Class<?> injectedType) {
 
+        // 创建 Service Bean 的名字
         ServiceBeanNameBuilder builder = ServiceBeanNameBuilder.create(reference, injectedType, getEnvironment());
-
+        // 貌似重复解析占位符
         return getEnvironment().resolvePlaceholders(builder.build());
     }
 
+    /**
+     * 创建(获得) ReferenceBean 对象
+     *
+     * @param referencedBeanName
+     * @param reference
+     * @param referencedType
+     * @param classLoader
+     * @return
+     * @throws Exception
+     */
     private ReferenceBean buildReferenceBeanIfAbsent(String referencedBeanName, Reference reference,
                                                      Class<?> referencedType, ClassLoader classLoader)
             throws Exception {
-
+        // 首先 从 referenceBeanCache 缓存中 获得 referencedBeanName 对应的 ReferenceBean 对象
         ReferenceBean<?> referenceBean = referenceBeanCache.get(referencedBeanName);
 
-        if (referenceBean == null) {
+        if (referenceBean == null) {    // 如果不存在则进行创建 添加到 referenceBeanCache 缓存中
             ReferenceBeanBuilder beanBuilder = ReferenceBeanBuilder
                     .create(reference, classLoader, applicationContext)
                     .interfaceClass(referencedType);
@@ -237,15 +301,19 @@ public class ReferenceAnnotationBeanPostProcessor extends AnnotationInjectedBean
     }
 
     private void onServiceBeanExportEvent(ServiceBeanExportedEvent event) {
+        // 获得 ServiceBean 对象
         ServiceBean serviceBean = event.getServiceBean();
+        // 初始化对应的 ReferenceBeanInvocationHandler
         initReferenceBeanInvocationHandler(serviceBean);
     }
 
     private void initReferenceBeanInvocationHandler(ServiceBean serviceBean) {
         String serviceBeanName = serviceBean.getBeanName();
         // Remove ServiceBean when it's exported
+        // 从 localReferenceBeanInvocationHandlerCache 缓存中移除
         ReferenceBeanInvocationHandler handler = localReferenceBeanInvocationHandlerCache.remove(serviceBeanName);
         // Initialize
+        // 执行初始化
         if (handler != null) {
             handler.init();
         }
@@ -255,10 +323,10 @@ public class ReferenceAnnotationBeanPostProcessor extends AnnotationInjectedBean
 
     }
 
-
     @Override
     public void destroy() throws Exception {
-        super.destroy();
+        super.destroy();    // 父类销毁
+        // 清空缓存
         this.referenceBeanCache.clear();
         this.localReferenceBeanInvocationHandlerCache.clear();
         this.injectedFieldReferenceBeanCache.clear();

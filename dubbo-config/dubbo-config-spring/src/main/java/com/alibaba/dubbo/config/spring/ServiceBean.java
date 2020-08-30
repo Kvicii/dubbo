@@ -259,11 +259,14 @@ public class ServiceBean<T> extends ServiceConfig<T> implements InitializingBean
 
     /**
      * @since 2.6.5
+     * 在 ServiceBean 暴露服务完成后 会发布 ServiceBeanExportedEvent 事件
      */
     @Override
     public void export() {
+        // 暴露服务
         super.export();
         // Publish ServiceBeanExportedEvent
+        // 发布事件
         publishExportEvent();
     }
 
@@ -271,7 +274,9 @@ public class ServiceBean<T> extends ServiceConfig<T> implements InitializingBean
      * @since 2.6.5
      */
     private void publishExportEvent() {
+        // 创建 ServiceBeanExportedEvent 对象
         ServiceBeanExportedEvent exportEvent = new ServiceBeanExportedEvent(this);
+        // 发布事件
         applicationEventPublisher.publishEvent(exportEvent);
     }
 

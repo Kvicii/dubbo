@@ -21,7 +21,6 @@ import com.alibaba.dubbo.config.ApplicationConfig;
 import com.alibaba.dubbo.config.ModuleConfig;
 import com.alibaba.dubbo.config.MonitorConfig;
 import com.alibaba.dubbo.config.RegistryConfig;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.context.ApplicationContext;
@@ -35,6 +34,8 @@ import static com.alibaba.dubbo.config.spring.util.BeanFactoryUtils.getOptionalB
 
 /**
  * Abstract Configurable {@link Annotation} Bean Builder
+ * <p>
+ * 泛型 A 对应 @Reference 注解 泛型 B 对应 ReferenceBean 类
  *
  * @since 2.5.7
  */
@@ -42,14 +43,23 @@ abstract class AbstractAnnotationConfigBeanBuilder<A extends Annotation, B exten
 
     protected final Log logger = LogFactory.getLog(getClass());
 
+    /**
+     * 注解
+     */
     protected final A annotation;
 
     protected final ApplicationContext applicationContext;
 
     protected final ClassLoader classLoader;
 
+    /**
+     * Bean 对象
+     */
     protected Object bean;
 
+    /**
+     * 接口
+     */
     protected Class<?> interfaceClass;
 
     protected AbstractAnnotationConfigBeanBuilder(A annotation, ClassLoader classLoader,
@@ -71,18 +81,13 @@ abstract class AbstractAnnotationConfigBeanBuilder<A extends Annotation, B exten
      */
     public final B build() throws Exception {
 
-        checkDependencies();
-
-        B bean = doBuild();
-
-        configureBean(bean);
-
+        checkDependencies();    // 校验依赖
+        B bean = doBuild(); // 执行构造 Bean 对象
+        configureBean(bean);    // 配置 Bean 对象
         if (logger.isInfoEnabled()) {
             logger.info("The bean[type:" + bean.getClass().getSimpleName() + "] has been built.");
         }
-
         return bean;
-
     }
 
     private void checkDependencies() {
@@ -99,18 +104,12 @@ abstract class AbstractAnnotationConfigBeanBuilder<A extends Annotation, B exten
 
     protected void configureBean(B bean) throws Exception {
 
-        preConfigureBean(annotation, bean);
-
-        configureRegistryConfigs(bean);
-
-        configureMonitorConfig(bean);
-
-        configureApplicationConfig(bean);
-
-        configureModuleConfig(bean);
-
-        postConfigureBean(annotation, bean);
-
+        preConfigureBean(annotation, bean); //前置配置
+        configureRegistryConfigs(bean); // 配置 RegistryConfig 属性
+        configureMonitorConfig(bean);   // 配置 MonitorConfig 属性
+        configureApplicationConfig(bean);   // 配置 ApplicationConfig 属性
+        configureModuleConfig(bean);    // 配置 ModuleConfig 属性
+        postConfigureBean(annotation, bean);    // 后置配置
     }
 
     protected abstract void preConfigureBean(A annotation, B bean) throws Exception;
