@@ -24,15 +24,14 @@ import com.alibaba.dubbo.rpc.cluster.Directory;
 /**
  * {@link FailoverClusterInvoker}
  * 调用失败时重试其他服务器
- *
  */
 public class FailoverCluster implements Cluster {
 
-    public final static String NAME = "failover";
+	public final static String NAME = "failover";
 
-    @Override
-    public <T> Invoker<T> join(Directory<T> directory) throws RpcException {
-        return new FailoverClusterInvoker<T>(directory);
-    }
+	@Override
+	public <T> Invoker<T> join(Directory<T> directory) throws RpcException {
+		return new FailoverClusterInvoker<>(directory);
+	}
 
 }

@@ -20,6 +20,8 @@ import com.alibaba.dubbo.common.Node;
 
 /**
  * Invoker. (API/SPI, Prototype, ThreadSafe)
+ * <p>
+ * 用于真实执行请求的组件
  *
  * @see com.alibaba.dubbo.rpc.Protocol#refer(Class, com.alibaba.dubbo.common.URL)
  * @see com.alibaba.dubbo.rpc.InvokerListener
@@ -27,22 +29,22 @@ import com.alibaba.dubbo.common.Node;
  */
 public interface Invoker<T> extends Node {
 
-    /**
-     * get service interface.
-     * 获取当前调用者的服务接口
-     *
-     * @return service interface.
-     */
-    Class<T> getInterface();
+	/**
+	 * get service interface.
+	 * 获取当前调用者的服务接口
+	 *
+	 * @return service interface.
+	 */
+	Class<T> getInterface();
 
-    /**
-     * invoke.
-     * 执行请求
-     *
-     * @param invocation
-     * @return result
-     * @throws RpcException
-     */
-    Result invoke(Invocation invocation) throws RpcException;
+	/**
+	 * invoke.
+	 * 执行请求
+	 *
+	 * @param invocation
+	 * @return result
+	 * @throws RpcException
+	 */
+	Result invoke(Invocation invocation) throws RpcException;
 
 }

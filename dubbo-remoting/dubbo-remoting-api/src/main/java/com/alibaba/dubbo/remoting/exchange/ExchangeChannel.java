@@ -24,38 +24,38 @@ import com.alibaba.dubbo.remoting.RemotingException;
  */
 public interface ExchangeChannel extends Channel {
 
-    /**
-     * send request.
-     *
-     * @param request
-     * @return response future
-     * @throws RemotingException
-     */
-    ResponseFuture request(Object request) throws RemotingException;
+	/**
+	 * send request.
+	 *
+	 * @param request
+	 * @return response future
+	 * @throws RemotingException
+	 */
+	ResponseFuture request(Object request) throws RemotingException;
 
-    /**
-     * send request.
-     *
-     * @param request 请求对象 实际上是一个RpcInvocation对象
-     * @param timeout 超时时间
-     * @return response future
-     * @throws RemotingException
-     */
-    ResponseFuture request(Object request, int timeout) throws RemotingException;
+	/**
+	 * send request.
+	 *
+	 * @param request 请求对象 实际上是一个RpcInvocation对象
+	 * @param timeout 超时时间
+	 * @return response future
+	 * @throws RemotingException
+	 */
+	ResponseFuture request(Object request, int timeout) throws RemotingException;
 
-    /**
-     * get message handler.
-     *
-     * @return message handler
-     */
-    ExchangeHandler getExchangeHandler();
+	/**
+	 * get message handler.
+	 *
+	 * @return message handler
+	 */
+	ExchangeHandler getExchangeHandler();
 
-    /**
-     * graceful close.
-     *
-     * @param timeout
-     */
-    @Override
-    void close(int timeout);
+	/**
+	 * graceful close.
+	 *
+	 * @param timeout
+	 */
+	@Override
+	void close(int timeout);
 
 }

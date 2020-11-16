@@ -22,7 +22,6 @@ import com.alibaba.dubbo.common.logger.LoggerFactory;
 import com.alibaba.dubbo.common.utils.ConcurrentHashSet;
 import com.alibaba.dubbo.config.DubboShutdownHook;
 import com.alibaba.dubbo.config.spring.util.BeanFactoryUtils;
-
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.NoUniqueBeanDefinitionException;
 import org.springframework.context.ApplicationContext;
@@ -36,76 +35,76 @@ import java.util.Set;
  * SpringExtensionFactory
  */
 public class SpringExtensionFactory implements ExtensionFactory {
-    private static final Logger logger = LoggerFactory.getLogger(SpringExtensionFactory.class);
+	private static final Logger logger = LoggerFactory.getLogger(SpringExtensionFactory.class);
 
-    private static final Set<ApplicationContext> contexts = new ConcurrentHashSet<ApplicationContext>();
+	private static final Set<ApplicationContext> contexts = new ConcurrentHashSet<ApplicationContext>();
 
-    private static final ApplicationListener shutdownHookListener = new ShutdownHookListener();
+	private static final ApplicationListener shutdownHookListener = new ShutdownHookListener();
 
-    public static void addApplicationContext(ApplicationContext context) {
-        contexts.add(context);
-        BeanFactoryUtils.addApplicationListener(context, shutdownHookListener);
-    }
+	public static void addApplicationContext(ApplicationContext context) {
+		contexts.add(context);
+		BeanFactoryUtils.addApplicationListener(context, shutdownHookListener);
+	}
 
-    public static void removeApplicationContext(ApplicationContext context) {
-        contexts.remove(context);
-    }
+	public static void removeApplicationContext(ApplicationContext context) {
+		contexts.remove(context);
+	}
 
-    public static Set<ApplicationContext> getContexts() {
-        return contexts;
-    }
+	public static Set<ApplicationContext> getContexts() {
+		return contexts;
+	}
 
-    // currently for test purpose
-    public static void clearContexts() {
-        contexts.clear();
-    }
+	// currently for test purpose
+	public static void clearContexts() {
+		contexts.clear();
+	}
 
-    @Override
-    @SuppressWarnings("unchecked")
-    public <T> T getExtension(Class<T> type, String name) {
-        for (ApplicationContext context : contexts) {
-            if (context.containsBean(name)) {
-                Object bean = context.getBean(name);
-                if (type.isInstance(bean)) {
-                    return (T) bean;
-                }
-            }
-        }
+	@Override
+	@SuppressWarnings("unchecked")
+	public <T> T getExtension(Class<T> type, String name) {
+		for (ApplicationContext context : contexts) {
+			if (context.containsBean(name)) {
+				Object bean = context.getBean(name);
+				if (type.isInstance(bean)) {
+					return (T) bean;
+				}
+			}
+		}
 
-        logger.warn("No spring extension (bean) named:" + name + ", try to find an extension (bean) of type " + type.getName());
+		logger.warn("No spring extension (bean) named:" + name + ", try to find an extension (bean) of type " + type.getName());
 
-        if (Object.class == type) {
-            return null;
-        }
+		if (Object.class == type) {
+			return null;
+		}
 
-        for (ApplicationContext context : contexts) {
-            try {
-                return context.getBean(type);
-            } catch (NoUniqueBeanDefinitionException multiBeanExe) {
-                logger.warn("Find more than 1 spring extensions (beans) of type " + type.getName() + ", will stop auto injection. Please make sure you have specified the concrete parameter type and there's only one extension of that type.");
-            } catch (NoSuchBeanDefinitionException noBeanExe) {
-                if (logger.isDebugEnabled()) {
-                    logger.debug("Error when get spring extension(bean) for type:" + type.getName(), noBeanExe);
-                }
-            }
-        }
+		for (ApplicationContext context : contexts) {
+			try {
+				return context.getBean(type);
+			} catch (NoUniqueBeanDefinitionException multiBeanExe) {
+				logger.warn("Find more than 1 spring extensions (beans) of type " + type.getName() + ", will stop auto injection. Please make sure you have specified the concrete parameter type and there's only one extension of that type.");
+			} catch (NoSuchBeanDefinitionException noBeanExe) {
+				if (logger.isDebugEnabled()) {
+					logger.debug("Error when get spring extension(bean) for type:" + type.getName(), noBeanExe);
+				}
+			}
+		}
 
-        logger.warn("No spring extension (bean) named:" + name + ", type:" + type.getName() + " found, stop get bean.");
+		logger.warn("No spring extension (bean) named:" + name + ", type:" + type.getName() + " found, stop get bean.");
 
-        return null;
-    }
+		return null;
+	}
 
-    private static class ShutdownHookListener implements ApplicationListener {
-        @Override
-        public void onApplicationEvent(ApplicationEvent event) {
-            if (event instanceof ContextClosedEvent) {
-                // we call it anyway since dubbo shutdown hook make sure its destroyAll() is re-entrant.
-                // pls. note we should not remove dubbo shutdown hook when spring framework is present, this is because
-                // its shutdown hook may not be installed.
-                DubboShutdownHook shutdownHook = DubboShutdownHook.getDubboShutdownHook();
-                shutdownHook.destroyAll();
-            }
-        }
-    }
+	private static class ShutdownHookListener implements ApplicationListener {
+		@Override
+		public void onApplicationEvent(ApplicationEvent event) {
+			if (event instanceof ContextClosedEvent) {
+				// we call it anyway since dubbo shutdown hook make sure its destroyAll() is re-entrant.
+				// pls. note we should not remove dubbo shutdown hook when spring framework is present, this is because
+				// its shutdown hook may not be installed.
+				DubboShutdownHook shutdownHook = DubboShutdownHook.getDubboShutdownHook();
+				shutdownHook.destroyAll();
+			}
+		}
+	}
 
 }

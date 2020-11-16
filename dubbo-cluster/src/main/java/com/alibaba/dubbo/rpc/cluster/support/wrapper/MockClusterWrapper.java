@@ -23,20 +23,19 @@ import com.alibaba.dubbo.rpc.cluster.Directory;
 
 /**
  * mock impl
- *
  */
 public class MockClusterWrapper implements Cluster {
 
-    private Cluster cluster;
+	private Cluster cluster;
 
-    public MockClusterWrapper(Cluster cluster) {
-        this.cluster = cluster;
-    }
+	public MockClusterWrapper(Cluster cluster) {
+		this.cluster = cluster;
+	}
 
-    @Override
-    public <T> Invoker<T> join(Directory<T> directory) throws RpcException {
-        return new MockClusterInvoker<T>(directory,
-                this.cluster.join(directory));
-    }
+	@Override
+	public <T> Invoker<T> join(Directory<T> directory) throws RpcException {
+		return new MockClusterInvoker<>(directory,
+				this.cluster.join(directory));
+	}
 
 }

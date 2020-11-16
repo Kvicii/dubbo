@@ -39,96 +39,96 @@ import java.util.List;
  */
 public abstract class AbstractDirectory<T> implements Directory<T> {
 
-    // logger
-    private static final Logger logger = LoggerFactory.getLogger(AbstractDirectory.class);
+	// logger
+	private static final Logger logger = LoggerFactory.getLogger(AbstractDirectory.class);
 
-    private final URL url;
+	private final URL url;
 
-    private volatile boolean destroyed = false;
+	private volatile boolean destroyed = false;
 
-    private volatile URL consumerUrl;
+	private volatile URL consumerUrl;
 
-    private volatile List<Router> routers;
+	private volatile List<Router> routers;
 
-    public AbstractDirectory(URL url) {
-        this(url, null);
-    }
+	public AbstractDirectory(URL url) {
+		this(url, null);
+	}
 
-    public AbstractDirectory(URL url, List<Router> routers) {
-        this(url, url, routers);
-    }
+	public AbstractDirectory(URL url, List<Router> routers) {
+		this(url, url, routers);
+	}
 
-    public AbstractDirectory(URL url, URL consumerUrl, List<Router> routers) {
-        if (url == null)
-            throw new IllegalArgumentException("url == null");
-        this.url = url;
-        this.consumerUrl = consumerUrl;
-        setRouters(routers);
-    }
+	public AbstractDirectory(URL url, URL consumerUrl, List<Router> routers) {
+		if (url == null)
+			throw new IllegalArgumentException("url == null");
+		this.url = url;
+		this.consumerUrl = consumerUrl;
+		setRouters(routers);
+	}
 
-    @Override
-    public List<Invoker<T>> list(Invocation invocation) throws RpcException {
-        if (destroyed) {
-            throw new RpcException("Directory already destroyed .url: " + getUrl());
-        }
-        List<Invoker<T>> invokers = doList(invocation);
-        List<Router> localRouters = this.routers; // local reference
-        if (localRouters != null && !localRouters.isEmpty()) {
-            for (Router router : localRouters) {
-                try {
-                    if (router.getUrl() == null || router.getUrl().getParameter(Constants.RUNTIME_KEY, false)) {
-                        invokers = router.route(invokers, getConsumerUrl(), invocation);    // 获取所有的Invoker
-                    }
-                } catch (Throwable t) {
-                    logger.error("Failed to execute router: " + getUrl() + ", cause: " + t.getMessage(), t);
-                }
-            }
-        }
-        return invokers;
-    }
+	@Override
+	public List<Invoker<T>> list(Invocation invocation) throws RpcException {
+		if (destroyed) {
+			throw new RpcException("Directory already destroyed .url: " + getUrl());
+		}
+		List<Invoker<T>> invokers = doList(invocation);
+		List<Router> localRouters = this.routers; // local reference
+		if (localRouters != null && !localRouters.isEmpty()) {
+			for (Router router : localRouters) {
+				try {
+					if (router.getUrl() == null || router.getUrl().getParameter(Constants.RUNTIME_KEY, false)) {
+						invokers = router.route(invokers, getConsumerUrl(), invocation);    // 获取所有的Invoker
+					}
+				} catch (Throwable t) {
+					logger.error("Failed to execute router: " + getUrl() + ", cause: " + t.getMessage(), t);
+				}
+			}
+		}
+		return invokers;
+	}
 
-    @Override
-    public URL getUrl() {
-        return url;
-    }
+	@Override
+	public URL getUrl() {
+		return url;
+	}
 
-    public List<Router> getRouters() {
-        return routers;
-    }
+	public List<Router> getRouters() {
+		return routers;
+	}
 
-    protected void setRouters(List<Router> routers) {
-        // copy list
-        routers = routers == null ? new ArrayList<Router>() : new ArrayList<Router>(routers);
-        // append url router
-        String routerkey = url.getParameter(Constants.ROUTER_KEY);
-        if (routerkey != null && routerkey.length() > 0) {
-            RouterFactory routerFactory = ExtensionLoader.getExtensionLoader(RouterFactory.class).getExtension(routerkey);
-            routers.add(routerFactory.getRouter(url));
-        }
-        // append mock invoker selector
-        routers.add(new MockInvokersSelector());
-        routers.add(new TagRouter());
-        Collections.sort(routers);
-        this.routers = routers;
-    }
+	protected void setRouters(List<Router> routers) {
+		// copy list
+		routers = routers == null ? new ArrayList<>() : new ArrayList<>(routers);
+		// append url router
+		String routerkey = url.getParameter(Constants.ROUTER_KEY);
+		if (routerkey != null && routerkey.length() > 0) {
+			RouterFactory routerFactory = ExtensionLoader.getExtensionLoader(RouterFactory.class).getExtension(routerkey);
+			routers.add(routerFactory.getRouter(url));
+		}
+		// append mock invoker selector
+		routers.add(new MockInvokersSelector());
+		routers.add(new TagRouter());
+		Collections.sort(routers);
+		this.routers = routers;
+	}
 
-    public URL getConsumerUrl() {
-        return consumerUrl;
-    }
+	public URL getConsumerUrl() {
+		return consumerUrl;
+	}
 
-    public void setConsumerUrl(URL consumerUrl) {
-        this.consumerUrl = consumerUrl;
-    }
+	public void setConsumerUrl(URL consumerUrl) {
+		this.consumerUrl = consumerUrl;
+	}
 
-    public boolean isDestroyed() {
-        return destroyed;
-    }
+	public boolean isDestroyed() {
+		return destroyed;
+	}
 
-    @Override
-    public void destroy() {
-        destroyed = true;
-    }
+	@Override
+	public void destroy() {
+		destroyed = true;
+	}
 
-    protected abstract List<Invoker<T>> doList(Invocation invocation) throws RpcException;
+	protected abstract List<Invoker<T>> doList(Invocation invocation) throws RpcException;
 
 }

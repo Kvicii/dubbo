@@ -30,66 +30,66 @@ import java.util.concurrent.ConcurrentHashMap;
  * @date 2017/11/23
  */
 public class ProviderConsumerRegTable {
-    public static ConcurrentHashMap<String, Set<ProviderInvokerWrapper>> providerInvokers = new ConcurrentHashMap<String, Set<ProviderInvokerWrapper>>();
-    public static ConcurrentHashMap<String, Set<ConsumerInvokerWrapper>> consumerInvokers = new ConcurrentHashMap<String, Set<ConsumerInvokerWrapper>>();
+	public static ConcurrentHashMap<String, Set<ProviderInvokerWrapper>> providerInvokers = new ConcurrentHashMap<>();
+	public static ConcurrentHashMap<String, Set<ConsumerInvokerWrapper>> consumerInvokers = new ConcurrentHashMap<>();
 
-    public static void registerProvider(Invoker invoker, URL registryUrl, URL providerUrl) {
-        ProviderInvokerWrapper wrapperInvoker = new ProviderInvokerWrapper(invoker, registryUrl, providerUrl);
-        String serviceUniqueName = providerUrl.getServiceKey();
-        Set<ProviderInvokerWrapper> invokers = providerInvokers.get(serviceUniqueName);
-        if (invokers == null) {
-            providerInvokers.putIfAbsent(serviceUniqueName, new ConcurrentHashSet<ProviderInvokerWrapper>());
-            invokers = providerInvokers.get(serviceUniqueName);
-        }
-        invokers.add(wrapperInvoker);
-    }
+	public static void registerProvider(Invoker invoker, URL registryUrl, URL providerUrl) {
+		ProviderInvokerWrapper wrapperInvoker = new ProviderInvokerWrapper(invoker, registryUrl, providerUrl);
+		String serviceUniqueName = providerUrl.getServiceKey();
+		Set<ProviderInvokerWrapper> invokers = providerInvokers.get(serviceUniqueName);
+		if (invokers == null) {
+			providerInvokers.putIfAbsent(serviceUniqueName, new ConcurrentHashSet<>());
+			invokers = providerInvokers.get(serviceUniqueName);
+		}
+		invokers.add(wrapperInvoker);
+	}
 
-    public static Set<ProviderInvokerWrapper> getProviderInvoker(String serviceUniqueName) {
-        Set<ProviderInvokerWrapper> invokers = providerInvokers.get(serviceUniqueName);
-        if (invokers == null) {
-            return Collections.emptySet();
-        }
-        return invokers;
-    }
+	public static Set<ProviderInvokerWrapper> getProviderInvoker(String serviceUniqueName) {
+		Set<ProviderInvokerWrapper> invokers = providerInvokers.get(serviceUniqueName);
+		if (invokers == null) {
+			return Collections.emptySet();
+		}
+		return invokers;
+	}
 
-    public static ProviderInvokerWrapper getProviderWrapper(Invoker invoker) {
-        URL providerUrl = invoker.getUrl();
-        if (Constants.REGISTRY_PROTOCOL.equals(providerUrl.getProtocol())) {
-            providerUrl = URL.valueOf(providerUrl.getParameterAndDecoded(Constants.EXPORT_KEY));
-        }
-        String serviceUniqueName = providerUrl.getServiceKey();
-        Set<ProviderInvokerWrapper> invokers = providerInvokers.get(serviceUniqueName);
-        if (invokers == null) {
-            return null;
-        }
+	public static ProviderInvokerWrapper getProviderWrapper(Invoker invoker) {
+		URL providerUrl = invoker.getUrl();
+		if (Constants.REGISTRY_PROTOCOL.equals(providerUrl.getProtocol())) {
+			providerUrl = URL.valueOf(providerUrl.getParameterAndDecoded(Constants.EXPORT_KEY));
+		}
+		String serviceUniqueName = providerUrl.getServiceKey();
+		Set<ProviderInvokerWrapper> invokers = providerInvokers.get(serviceUniqueName);
+		if (invokers == null) {
+			return null;
+		}
 
-        for (ProviderInvokerWrapper providerWrapper : invokers) {
-            Invoker providerInvoker = providerWrapper.getInvoker();
-            if (providerInvoker == invoker) {
-                return providerWrapper;
-            }
-        }
+		for (ProviderInvokerWrapper providerWrapper : invokers) {
+			Invoker providerInvoker = providerWrapper.getInvoker();
+			if (providerInvoker == invoker) {
+				return providerWrapper;
+			}
+		}
 
-        return null;
-    }
+		return null;
+	}
 
-    public static void registerConsumer(Invoker invoker, URL registryUrl, URL consumerUrl, RegistryDirectory registryDirectory) {
-        ConsumerInvokerWrapper wrapperInvoker = new ConsumerInvokerWrapper(invoker, registryUrl, consumerUrl, registryDirectory);
-        String serviceUniqueName = consumerUrl.getServiceKey();
-        Set<ConsumerInvokerWrapper> invokers = consumerInvokers.get(serviceUniqueName);
-        if (invokers == null) {
-            consumerInvokers.putIfAbsent(serviceUniqueName, new ConcurrentHashSet<ConsumerInvokerWrapper>());
-            invokers = consumerInvokers.get(serviceUniqueName);
-        }
-        invokers.add(wrapperInvoker);
-    }
+	public static void registerConsumer(Invoker invoker, URL registryUrl, URL consumerUrl, RegistryDirectory registryDirectory) {
+		ConsumerInvokerWrapper wrapperInvoker = new ConsumerInvokerWrapper(invoker, registryUrl, consumerUrl, registryDirectory);
+		String serviceUniqueName = consumerUrl.getServiceKey();
+		Set<ConsumerInvokerWrapper> invokers = consumerInvokers.get(serviceUniqueName);
+		if (invokers == null) {
+			consumerInvokers.putIfAbsent(serviceUniqueName, new ConcurrentHashSet<>());
+			invokers = consumerInvokers.get(serviceUniqueName);
+		}
+		invokers.add(wrapperInvoker);
+	}
 
-    public static Set<ConsumerInvokerWrapper> getConsumerInvoker(String serviceUniqueName) {
-        Set<ConsumerInvokerWrapper> invokers = consumerInvokers.get(serviceUniqueName);
-        if (invokers == null) {
-            return Collections.emptySet();
-        }
-        return invokers;
-    }
+	public static Set<ConsumerInvokerWrapper> getConsumerInvoker(String serviceUniqueName) {
+		Set<ConsumerInvokerWrapper> invokers = consumerInvokers.get(serviceUniqueName);
+		if (invokers == null) {
+			return Collections.emptySet();
+		}
+		return invokers;
+	}
 
 }

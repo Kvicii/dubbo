@@ -28,127 +28,127 @@ import com.alibaba.dubbo.remoting.RemotingException;
  */
 public abstract class AbstractPeer implements Endpoint, ChannelHandler {
 
-    private final ChannelHandler handler;
+	private final ChannelHandler handler;
 
-    private volatile URL url;
+	private volatile URL url;
 
-    // closing closed means the process is being closed and close is finished
-    private volatile boolean closing;
+	// closing closed means the process is being closed and close is finished
+	private volatile boolean closing;
 
-    private volatile boolean closed;
+	private volatile boolean closed;
 
-    public AbstractPeer(URL url, ChannelHandler handler) {
-        if (url == null) {
-            throw new IllegalArgumentException("url == null");
-        }
-        if (handler == null) {
-            throw new IllegalArgumentException("handler == null");
-        }
-        this.url = url;
-        this.handler = handler;
-    }
+	public AbstractPeer(URL url, ChannelHandler handler) {
+		if (url == null) {
+			throw new IllegalArgumentException("url == null");
+		}
+		if (handler == null) {
+			throw new IllegalArgumentException("handler == null");
+		}
+		this.url = url;
+		this.handler = handler;
+	}
 
-    @Override
-    public void send(Object message) throws RemotingException {
-        send(message, url.getParameter(Constants.SENT_KEY, false));
-    }
+	@Override
+	public void send(Object message) throws RemotingException {
+		send(message, url.getParameter(Constants.SENT_KEY, false));
+	}
 
-    @Override
-    public void close() {
-        closed = true;
-    }
+	@Override
+	public void close() {
+		closed = true;
+	}
 
-    @Override
-    public void close(int timeout) {
-        close();
-    }
+	@Override
+	public void close(int timeout) {
+		close();
+	}
 
-    @Override
-    public void startClose() {
-        if (isClosed()) {
-            return;
-        }
-        closing = true;
-    }
+	@Override
+	public void startClose() {
+		if (isClosed()) {
+			return;
+		}
+		closing = true;
+	}
 
-    @Override
-    public URL getUrl() {
-        return url;
-    }
+	@Override
+	public URL getUrl() {
+		return url;
+	}
 
-    protected void setUrl(URL url) {
-        if (url == null) {
-            throw new IllegalArgumentException("url == null");
-        }
-        this.url = url;
-    }
+	protected void setUrl(URL url) {
+		if (url == null) {
+			throw new IllegalArgumentException("url == null");
+		}
+		this.url = url;
+	}
 
-    @Override
-    public ChannelHandler getChannelHandler() {
-        if (handler instanceof ChannelHandlerDelegate) {
-            return ((ChannelHandlerDelegate) handler).getHandler();
-        } else {
-            return handler;
-        }
-    }
+	@Override
+	public ChannelHandler getChannelHandler() {
+		if (handler instanceof ChannelHandlerDelegate) {
+			return ((ChannelHandlerDelegate) handler).getHandler();
+		} else {
+			return handler;
+		}
+	}
 
-    /**
-     * @return ChannelHandler
-     */
-    @Deprecated
-    public ChannelHandler getHandler() {
-        return getDelegateHandler();
-    }
+	/**
+	 * @return ChannelHandler
+	 */
+	@Deprecated
+	public ChannelHandler getHandler() {
+		return getDelegateHandler();
+	}
 
-    /**
-     * Return the final handler (which may have been wrapped). This method should be distinguished with getChannelHandler() method
-     *
-     * @return ChannelHandler
-     */
-    public ChannelHandler getDelegateHandler() {
-        return handler;
-    }
+	/**
+	 * Return the final handler (which may have been wrapped). This method should be distinguished with getChannelHandler() method
+	 *
+	 * @return ChannelHandler
+	 */
+	public ChannelHandler getDelegateHandler() {
+		return handler;
+	}
 
-    @Override
-    public boolean isClosed() {
-        return closed;
-    }
+	@Override
+	public boolean isClosed() {
+		return closed;
+	}
 
-    public boolean isClosing() {
-        return closing && !closed;
-    }
+	public boolean isClosing() {
+		return closing && !closed;
+	}
 
-    @Override
-    public void connected(Channel ch) throws RemotingException {
-        if (closed) {
-            return;
-        }
-        handler.connected(ch);
-    }
+	@Override
+	public void connected(Channel ch) throws RemotingException {
+		if (closed) {
+			return;
+		}
+		handler.connected(ch);
+	}
 
-    @Override
-    public void disconnected(Channel ch) throws RemotingException {
-        handler.disconnected(ch);
-    }
+	@Override
+	public void disconnected(Channel ch) throws RemotingException {
+		handler.disconnected(ch);
+	}
 
-    @Override
-    public void sent(Channel ch, Object msg) throws RemotingException {
-        if (closed) {
-            return;
-        }
-        handler.sent(ch, msg);
-    }
+	@Override
+	public void sent(Channel ch, Object msg) throws RemotingException {
+		if (closed) {
+			return;
+		}
+		handler.sent(ch, msg);
+	}
 
-    @Override
-    public void received(Channel ch, Object msg) throws RemotingException {
-        if (closed) {
-            return;
-        }
-        handler.received(ch, msg);
-    }
+	@Override
+	public void received(Channel ch, Object msg) throws RemotingException {
+		if (closed) {
+			return;
+		}
+		handler.received(ch, msg);
+	}
 
-    @Override
-    public void caught(Channel ch, Throwable ex) throws RemotingException {
-        handler.caught(ch, ex);
-    }
+	@Override
+	public void caught(Channel ch, Throwable ex) throws RemotingException {
+		handler.caught(ch, ex);
+	}
 }

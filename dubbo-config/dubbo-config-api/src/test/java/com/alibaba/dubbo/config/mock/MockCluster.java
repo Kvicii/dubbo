@@ -22,8 +22,8 @@ import com.alibaba.dubbo.rpc.cluster.Cluster;
 import com.alibaba.dubbo.rpc.cluster.Directory;
 
 public class MockCluster implements Cluster {
-    @Override
-    public <T> Invoker<T> join(Directory<T> directory) throws RpcException {
-        return null;
-    }
+	@Override
+	public <T> Invoker<T> join(Directory<T> directory) throws RpcException {
+		return null;
+	}
 }

@@ -30,26 +30,26 @@ import java.util.List;
 @Adaptive
 public class AdaptiveExtensionFactory implements ExtensionFactory {
 
-    private final List<ExtensionFactory> factories;
+	private final List<ExtensionFactory> factories;
 
-    public AdaptiveExtensionFactory() {
-        // 获取针对ExtensionFactory的扩展加载器
-        ExtensionLoader<ExtensionFactory> loader = ExtensionLoader.getExtensionLoader(ExtensionFactory.class);
-        List<ExtensionFactory> list = new ArrayList<ExtensionFactory>();
-        for (String name : loader.getSupportedExtensions()) {   // 获取支持的扩展
-            list.add(loader.getExtension(name));
-        }
-        factories = Collections.unmodifiableList(list);
-    }
+	public AdaptiveExtensionFactory() {
+		// 获取针对ExtensionFactory的扩展加载器
+		ExtensionLoader<ExtensionFactory> loader = ExtensionLoader.getExtensionLoader(ExtensionFactory.class);
+		List<ExtensionFactory> list = new ArrayList<>();
+		for (String name : loader.getSupportedExtensions()) {   // 获取支持的扩展
+			list.add(loader.getExtension(name));
+		}
+		factories = Collections.unmodifiableList(list);
+	}
 
-    @Override
-    public <T> T getExtension(Class<T> type, String name) {
-        for (ExtensionFactory factory : factories) {    // 交给真实的扩展来处理
-            T extension = factory.getExtension(type, name);
-            if (extension != null) {
-                return extension;
-            }
-        }
-        return null;
-    }
+	@Override
+	public <T> T getExtension(Class<T> type, String name) {
+		for (ExtensionFactory factory : factories) {    // 交给真实的扩展来处理
+			T extension = factory.getExtension(type, name);
+			if (extension != null) {
+				return extension;
+			}
+		}
+		return null;
+	}
 }

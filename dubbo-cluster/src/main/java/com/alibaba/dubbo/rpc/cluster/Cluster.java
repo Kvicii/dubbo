@@ -31,15 +31,15 @@ import com.alibaba.dubbo.rpc.cluster.support.FailoverCluster;
 @SPI(FailoverCluster.NAME)
 public interface Cluster {
 
-    /**
-     * Merge the directory invokers to a virtual invoker.
-     *
-     * @param <T>
-     * @param directory
-     * @return cluster invoker
-     * @throws RpcException
-     */
-    @Adaptive
-    <T> Invoker<T> join(Directory<T> directory) throws RpcException;
+	/**
+	 * Merge the directory invokers to a virtual invoker.
+	 *
+	 * @param <T>
+	 * @param directory
+	 * @return cluster invoker
+	 * @throws RpcException
+	 */
+	@Adaptive
+	<T> Invoker<T> join(Directory<T> directory) throws RpcException;
 
 }

@@ -22,15 +22,15 @@ package com.alibaba.dubbo.common.extension;
 @SPI
 public interface ExtensionFactory {
 
-    /**
-     * Get extension.
-     * 根据传入的扩展点类型和名字来获取扩展
-     * 和SPI具体名称实现挂钩
-     *
-     * @param type object type.
-     * @param name object name.
-     * @return object instance.
-     */
-    <T> T getExtension(Class<T> type, String name);
+	/**
+	 * Get extension.
+	 * 根据传入的扩展点类型和名字来获取扩展
+	 * 和SPI具体名称实现挂钩
+	 *
+	 * @param type object type.
+	 * @param name object name.
+	 * @return object instance.
+	 */
+	<T> T getExtension(Class<T> type, String name);
 
 }
